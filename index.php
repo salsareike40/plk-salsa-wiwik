@@ -1,22 +1,42 @@
 <?php
 session_start();
+include "conn.php";
+
 $error = "";
 
 if (isset($_POST['login'])) {
-    $username = $_POST['username'];
+    $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    // LOGIN CONTOH (nanti ganti database)
-    if ($username === "pegawai" && $password === "12345") {
-        $_SESSION['username'] = $username;
-        header("Location: dashboard.php");
-        exit;
+    // amankan input
+    $username = mysqli_real_escape_string($conn, $username);
+
+    // ambil user dari tabel users
+    $query = mysqli_query($conn, "
+        SELECT * FROM users WHERE username='$username'
+    ");
+
+    if ($query && mysqli_num_rows($query) == 1) {
+        $user = mysqli_fetch_assoc($query);
+
+        // cek password hash
+        if (password_verify($password, $user['password'])) {
+            // simpan session
+            $_SESSION['id']       = $user['id'];
+            $_SESSION['username'] = $user['username'];
+            $_SESSION['role']     = $user['role'];
+
+            header("Location: dashboard.php");
+            exit;
+        } else {
+            $error = "Password salah!";
+        }
     } else {
-        $error = "Username atau password salah!";
+        $error = "Username tidak ditemukan!";
     }
 }
-
 ?>
+
 <!DOCTYPE html>
 <html lang="id">
 <head>

@@ -1,32 +1,18 @@
 <?php
 session_start();
-include "conn.php";
 
 $error = "";
-
 if (isset($_POST['login'])) {
-    $username = trim($_POST['username']);
+    $username = $_POST['username'];
     $password = $_POST['password'];
 
-    $query = mysqli_query($conn, "SELECT * FROM pegawai WHERE username='$username'");
-
-    if ($query && mysqli_num_rows($query) == 1) {
-        $user = mysqli_fetch_assoc($query);
-        echo "<pre>";
-        var_dump($user);
-        echo "</pre>";
+    // Contoh login statis
+    if ($username == "admin" && $password == "12345") {
+        $_SESSION['username'] = $username;
+        header("Location: dashboard.php");
         exit;
-
-
-        if (password_verify($password, $user['password'])) {
-            $_SESSION['username'] = $user['username'];
-            header("Location: dashboard.php");
-            exit;
-        } else {
-            $error = "Password salah!";
-        }
     } else {
-        $error = "Username tidak ditemukan!";
+        $error = "Username atau password salah!";
     }
 }
 ?>
@@ -137,4 +123,34 @@ button:hover {
 </style>
 </head>
 
+<body>
+
+<div class="login-box">
+    <div class="logo">
+        <span class="logo-circle">n</span>
+        <span class="logo-text">nigoweb</span>
+        <div class="subtitle">Website & Software Developer</div>
+    </div>
+
+    <?php if ($error != "") { ?>
+        <div class="error"><?= $error ?></div>
+    <?php } ?>
+
+    <form method="post">
+        <div class="input-group">
+            <input type="text" name="username" placeholder="Username" required>
+            <span>👤</span>
+        </div>
+
+        <div class="input-group">
+            <input type="password" name="password" placeholder="Password" required>
+            <span>🔒</span>
+        </div>
+
+        <button type="submit" name="login">Sign In</button>
+    </form>
+
+</div>
+
+</body>
 </html>
