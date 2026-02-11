@@ -8,34 +8,37 @@ if (isset($_POST['login'])) {
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
-    // amankan input
     $username = mysqli_real_escape_string($conn, $username);
 
-    // ambil user dari tabel users
     $query = mysqli_query($conn, "
-        SELECT * FROM users WHERE username='$username'
+        SELECT * FROM pegawai 
+        WHERE username='$username' AND status='aktif'
     ");
 
     if ($query && mysqli_num_rows($query) == 1) {
         $user = mysqli_fetch_assoc($query);
 
-        // cek password hash
         if (password_verify($password, $user['password'])) {
-            // simpan session
+
             $_SESSION['id']       = $user['id'];
             $_SESSION['username'] = $user['username'];
             $_SESSION['role']     = $user['role'];
 
-            header("Location: dashboard.php");
-            exit;
+    if($user['role'] == 'admin'){
+    header("Location: ad-dashboard.php");
+} else {
+    header("Location: dashboard.php");
+}
+exit;
         } else {
             $error = "Password salah!";
         }
     } else {
-        $error = "Username tidak ditemukan!";
+        $error = "Username tidak ditemukan atau akun tidak aktif!";
     }
 }
 ?>
+
 
 <!DOCTYPE html>
 <html lang="id">
