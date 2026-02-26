@@ -9,7 +9,6 @@ if (isset($_POST['login'])) {
     $username = mysqli_real_escape_string($conn, $_POST['username']);
     $password = $_POST['password'];
 
-    // AMBIL DATA DARI TABEL PEGAWAI
     $query = mysqli_query($conn, 
         "SELECT * FROM pegawai WHERE username='$username'"
     );
@@ -18,18 +17,23 @@ if (isset($_POST['login'])) {
 
     if ($pegawai) {
 
-        // CEK PASSWORD
+        // ⬅️ CEK APAKAH HARUS RESET PASSWORD
+        if ($pegawai['reset_pass'] == 1) {
+            $_SESSION['reset_user'] = $pegawai['id_pegawai'];
+            header("Location: set-password-baru.php");
+            exit;
+        }
+
+        // LOGIN NORMAL
         if (password_verify($password, $pegawai['password'])) {
 
-                        // login.php (SETELAH password_verify)
             $_SESSION['login']      = true;
             $_SESSION['id_pegawai'] = $pegawai['id_pegawai'];
             $_SESSION['username']   = $pegawai['username'];
-            $_SESSION['role']       = $pegawai['role']; // admin / pegawai
+            $_SESSION['role']       = $pegawai['role']; 
 
             header("Location: dashboard.php");
             exit;
-
 
         } else {
             $error = "Password salah!";
@@ -41,11 +45,12 @@ if (isset($_POST['login'])) {
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Login Sistem Kominfo</title>
+<title>Login Sistem Cuti Dinas Kominfo Kota</title>
 
 <style>
 body{

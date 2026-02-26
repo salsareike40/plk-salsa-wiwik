@@ -156,7 +156,7 @@ exit;
             setTimeout(() => {
                 errorMsg.style.display = 'none';
             }, 500);
-        }, 5000); // 5 detik
+        }, 5000); 
     }
 </script>
 
@@ -164,7 +164,6 @@ exit;
 
 <div class="login-box">
     <div class="logo">
-        <!-- GANTI LOGO SESUAI FILE KAMU -->
         <img src="aset/logo-kominfo.jpeg" alt="Kominfo">
         <p>Kementerian Komunikasi dan Informatika</p>
     </div>

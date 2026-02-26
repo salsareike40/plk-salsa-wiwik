@@ -50,7 +50,6 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-    /* ===== MODAL SUCCESS ===== */
 .modal-overlay{
     position:fixed;
     top:0; left:0;
@@ -310,7 +309,7 @@ function closeModal(){
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="">
-        <h2>Sistem Dinas<br>Kominfo Kota</h2>
+        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
     </div>
 
     <div class="menu">
@@ -397,18 +396,24 @@ function closeModal(){
         <!-- KANAN -->
         <div>
             <div class="box">
-                <h3>Alasan Cuti</h3>
-                <input type="text" name="alasan" placeholder="Masukkan alasan cuti" style="width:100%">
-            </div>
+                    <h3>Alasan Cuti</h3>
+                    <input type="text" name="alasan" placeholder="Masukkan alasan cuti" style="width:100%">
+                </div>
 
-            <div class="box">
+                <div class="box">
                 <h3>Lama Cuti</h3>
-                <div class="date-row">
+
+                <div class="form-row">
+                    <label>Tanggal Mulai</label>
                     <input type="date" name="tgl_mulai" required>
+                </div>
+
+                <div class="form-row">
+                    <label>Tanggal Selesai</label>
                     <input type="date" name="tgl_selesai" required>
                 </div>
 
-                <div class="form-row" style="margin-top:12px">
+                <div class="form-row">
                     <label>Jumlah Hari</label>
                     <input type="text" name="jumlah_hari" placeholder="Jumlah hari">
                 </div>

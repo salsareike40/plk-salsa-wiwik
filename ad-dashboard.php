@@ -1,10 +1,20 @@
 <?php
 session_start();
 include "conn.php";
-if (!isset($_SESSION['role'])) {
-    header("Location: index.php");
+if ($_SESSION['role'] !== 'admin') {
+    header("Location: dashboard.php");
     exit;
 }
+
+$qPegawai = mysqli_query($conn,"
+    SELECT COUNT(*) AS total
+    FROM pegawai
+    WHERE status='aktif'
+      AND nama_pegawai IS NOT NULL
+      AND nama_pegawai != ''
+");
+
+$totalPegawai = mysqli_fetch_assoc($qPegawai)['total'];
 
 $jenisList = [
     'Cuti Tahunan',
@@ -29,7 +39,6 @@ while($row = mysqli_fetch_assoc($qJenis)){
         $totalCuti += (int)$row['total'];
     }
 }
-// ===== HITUNG PERSEN & PAKSA TOTAL = 100 =====
 $dataPersen = [];
 $totalPersen = 0;
 
@@ -49,8 +58,6 @@ if($selisih != 0){
     $dataPersen[$maxKey] += $selisih;
 }
 
-
-// TOTAL pengajuan cuti
 $qTotal = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti");
 $total = mysqli_fetch_assoc($qTotal)['total'];
 
@@ -69,6 +76,7 @@ $tolak = mysqli_fetch_assoc($qTolak)['total'];
 
 $query = mysqli_query($conn, "
     SELECT * FROM cuti
+    WHERE status IN ('Disetujui','Ditolak')
     ORDER BY tgl_pengajuan DESC
     LIMIT 5
 ");
@@ -459,7 +467,7 @@ td{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="">
-        <h2>Sistem Dinas<br>Kominfo Kota</h2>
+        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
     </div>
 
     <div class="menu">
@@ -469,6 +477,7 @@ td{
             <a href="ad-dashboard.php" class="active">📊 Dashboard</a>
             <a href="data-pegawai.php">🧑‍💼 Data Pegawai</a>
             <a href="pengajuan.php">📑 Pengajuan Cuti</a>
+            <a href="ad-sanggah.php">⚠️ Sanggahan</a>
 
         <?php } elseif ($_SESSION['role'] === 'pegawai') { ?>
 
@@ -496,6 +505,7 @@ td{
         <a href="logout.php">Logout</a>
     </div>
 </div>
+<form id="formCuti">
 
     <!-- STAT -->
     <div class="stats">
@@ -504,7 +514,7 @@ td{
     <div class="card total">
         <div class="icon blue">👥</div>
         <div class="card-text">
-            <div class="number">125</div>
+            <div class="number"><?= $totalPegawai ?></div>
             <div class="label">Total Pegawai</div>
         </div>
     </div>
@@ -606,9 +616,7 @@ td{
     <td><?= $row['jumlah_hari'] ?></td>
     <td>
         <?php
-        if($row['status']=='Menunggu'){
-            echo '<span class="badge wait">Menunggu</span>';
-        }elseif($row['status']=='Disetujui'){
+        if($row['status']=='Disetujui'){
             echo '<span class="badge ok">Disetujui</span>';
         }else{
             echo '<span class="badge no">Ditolak</span>';
@@ -640,7 +648,7 @@ td{
 <div class="box sanggahan-terbaru">
     <div class="box-header">
         <h3>Sanggahan Harian Terbaru</h3>
-        <a href="sanggahan.php" class="link">Lihat Semua ›</a>
+        <a href="ad-sanggah.php" class="link">Lihat Semua ›</a>
     </div>
 
     <table>

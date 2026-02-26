@@ -1,6 +1,11 @@
 <?php
 session_start();
 include "conn.php";
+if($_SESSION['role'] === 'admin'){
+    header("Location: sanggahan-admin.php");
+    exit;
+}
+
 
 if(!isset($_SESSION['username'])){
     header("Location: index.php");
@@ -25,12 +30,17 @@ $query = mysqli_query($conn,"
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
 <style>
-body{
+*{
     margin:0;
+    padding:0;
+    box-sizing:border-box;
     font-family:'Inter',sans-serif;
+}
+
+body{
     background:#eef4fb;
     display:flex;
-    min-height:100vh;
+    height:100vh;
 }
 
 /* ================= SIDEBAR ================= */
@@ -96,37 +106,68 @@ body{
 
 
 /* BOX */
+/* === TABLE WRAPPER === */
 .box{
-    background:#fff;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 10px 20px rgba(0,0,0,.08);
+    background:transparent;          /* biar kelihatan card row */
+    padding:0;
+    box-shadow:none;
 }
 
-/* TABLE */
+/* === TABLE === */
+/* === PAKSA TABEL RAPAT TOTAL === */
 table{
     width:100%;
-    border-collapse:collapse;
+    border-collapse:collapse !important; /* 🔑 WAJIB */
+    border-spacing:0 !important;         /* 🔑 WAJIB */
+    background:#fff;
+    border-radius:16px;
+    overflow:hidden;
 }
-th{
-    text-align:left;
-    font-size:13px;
-    color:#777;
-    padding-bottom:12px;
+
+/* HEADER */
+thead{
+    background:#0b5aa6;
 }
-td{
-    padding:12px 0;
+thead th{
+    color:#fff;
+    padding:16px 14px;
     font-size:14px;
-    border-top:1px solid #eef2f7;
+    font-weight:600;
+    text-align:center;
+}
+
+/* BODY */
+tbody tr{
+    background:#fff;
+    box-shadow:none !important;  /* ❌ hapus efek card */
+}
+
+tbody td{
+    padding:16px 14px;
+    font-size:14px;
+    color:#333;
+    text-align:center;
+    border-bottom:1px solid #eef2f7; /* garis pemisah */
+}
+
+/* HAPUS JARAK BAWAH */
+tbody tr:last-child td{
+    border-bottom:none;
+}
+
+/* HOVER */
+tbody tr:hover{
+    background:#f6f9ff;
 }
 
 /* BADGE */
 .badge{
-    padding:6px 14px;
+    padding:6px 16px;
     border-radius:20px;
     font-size:12px;
     font-weight:600;
 }
+
 .wait{ background:#ffe1b3; color:#b56a00; }
 .ok{ background:#c8f0d3; color:#0a7a32; }
 .no{ background:#ffd1d1; color:#b00000; }
@@ -178,13 +219,13 @@ td{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="Kominfo">
-        <h2>Sistem Dinas<br>Kominfo Kota</h2>
+        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
     </div>
 
     <div class="menu">
         <a href="dashboard.php">📊 Dashboard</a>
         <a href="cuti.php">🗓️ Cuti</a>
-        <a href="sanggahan.php" class="active">📑 Sanggahan</a>
+        <a href="sanggahan.php" class="active">⚠️ Sanggahan</a>
     </div>
 </div>
 
@@ -209,6 +250,7 @@ td{
         <table>
             <thead>
                 <tr>
+                    <th>No</th>
                     <th>Nama</th>
                     <th>NIP</th>
                     <th>Jenis Cuti</th>
@@ -226,29 +268,22 @@ td{
                 </tr>
             <?php endif; ?>
 
-            <?php while($row=mysqli_fetch_assoc($query)): ?>
-                <tr>
-                    <td><?= $row['nama'] ?></td>
-                    <td><?= $row['nip'] ?></td>
-                    <td><?= $row['jenis_cuti'] ?></td>
-                    <td>
-                        <?= date('d M Y',strtotime($row['tgl_mulai'])) ?>
-                        s/d
-                        <?= date('d M Y',strtotime($row['tgl_selesai'])) ?>
-                    </td>
-                    <td>
-                        <?php
-                        if($row['status']=='Menunggu'){
-                            echo '<span class="badge wait">Menunggu</span>';
-                        }elseif($row['status']=='Disetujui'){
-                            echo '<span class="badge ok">Disetujui</span>';
-                        }else{
-                            echo '<span class="badge no">Ditolak</span>';
-                        }
-                        ?>
-                    </td>
-                </tr>
-            <?php endwhile; ?>
+            <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
+<tr>
+    <td><?= $no++ ?></td>
+    <td><?= $row['nama'] ?></td>
+    <td><?= $row['nip'] ?></td>
+    <td><?= $row['jenis_cuti'] ?></td>
+    <td>
+        <?= date('d M Y',strtotime($row['tgl_mulai'])) ?>
+        s/d
+        <?= date('d M Y',strtotime($row['tgl_selesai'])) ?>
+    </td>
+    <td>
+        <span class="badge wait">Menunggu</span>
+    </td>
+</tr>
+<?php endwhile; ?>
 
             </tbody>
         </table>

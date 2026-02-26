@@ -7,6 +7,7 @@ $error = "";
 $success = "";
 
 if (isset($_POST['signin'])) {
+    $nip      = trim($_POST['nip']);
     $username = trim($_POST['username']);
     $password = $_POST['password'];
     $confirm  = $_POST['confirm'];
@@ -15,15 +16,22 @@ if (isset($_POST['signin'])) {
         $error = "Password dan konfirmasi password tidak sama!";
     } else {
         // cek username sudah ada atau belum
-        $cek = mysqli_query($conn, "SELECT * FROM pegawai WHERE username='$username'");
-        if (mysqli_num_rows($cek) > 0) {
-            $error = "Username sudah digunakan!";
-        } else {
+        $cek = mysqli_query($conn, "
+    SELECT * FROM pegawai 
+    WHERE username='$username' OR nip='$nip'
+");
+
+if (mysqli_num_rows($cek) > 0) {
+    $error = "Username atau NIP sudah digunakan!";
+}
+ else {
             $hash = password_hash($password, PASSWORD_DEFAULT);
-            mysqli_query($conn, "
-                INSERT INTO pegawai (username, password, role, status)
-                VALUES ('$username', '$hash', 'pegawai', 'aktif')
-            ");
+
+mysqli_query($conn, "
+    INSERT INTO pegawai (nip, username, password, role, status)
+    VALUES ('$nip', '$username', '$hash', 'pegawai', 'aktif')
+");
+
             $success = "Akun berhasil dibuat! Silakan login.";
         }
     }
@@ -151,6 +159,12 @@ if (isset($_POST['signin'])) {
 
     <form method="post">
         
+        <div class="form-group">
+            <label>NIP</label>
+            <input type="text" name="nip" required>
+        </div>
+
+
         <div class="form-group">
             <label>Username</label>
             <input type="text" name="username" required>

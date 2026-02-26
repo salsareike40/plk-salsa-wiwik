@@ -1,6 +1,21 @@
 <?php
 session_start();
 include "conn.php";
+if ($_SESSION['role'] === 'admin') {
+    header("Location: ad-dashboard.php");
+    exit;
+}
+
+$qPegawai = mysqli_query($conn,"
+    SELECT COUNT(*) AS total
+    FROM pegawai
+    WHERE status='aktif'
+      AND nama_pegawai IS NOT NULL
+      AND nama_pegawai != ''
+");
+
+$totalPegawai = mysqli_fetch_assoc($qPegawai)['total'];
+
 $jenisList = [
     'Cuti Tahunan',
     'Cuti Sakit',
@@ -64,6 +79,7 @@ $tolak = mysqli_fetch_assoc($qTolak)['total'];
 
 $query = mysqli_query($conn, "
     SELECT * FROM cuti
+    WHERE status IN ('Disetujui','Ditolak')
     ORDER BY tgl_pengajuan DESC
     LIMIT 5
 ");
@@ -437,7 +453,43 @@ td{
     font-size:13px;
     cursor:pointer;
 }
+.dashboard-header{
+    background:#ffffff;
+    padding:18px 30px;
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
 
+    /* KUNCI FULL WIDTH */
+    margin: -30px -30px 30px -30px; /* tarik keluar padding .main */
+    border-radius:0;
+
+    box-shadow:0 2px 6px rgba(0,0,0,0.08);
+}
+
+.dashboard-header h1{
+    font-size:22px;
+    font-weight:600;
+    color:#0b5aa6;
+}
+
+/* USER AREA */
+.header-user{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    font-size:14px;
+}
+
+.header-user a{
+    color:#0b5aa6;
+    text-decoration:none;
+    font-weight:500;
+}
+
+.divider{
+    color:#aaa;
+}
 </style>
 </head>
 <body>
@@ -446,13 +498,13 @@ td{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="">
-        <h2>Sistem Dinas<br>Kominfo Kota</h2>
+        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
     </div>
 
     <div class="menu">
-        <a href="#" class="active">📊 Dashboard</a>
+        <a href="dashboard.php" class="active">📊 Dashboard</a>
         <a href="cuti.php">🗓️ Cuti</a>
-        <a href="sanggahan.php">📑 Sanggahan</a>
+        <a href="sanggahan.php">⚠️ Sanggahan</a>
 
     </div>
 </div>
@@ -479,7 +531,7 @@ td{
     <div class="card total">
         <div class="icon blue">👥</div>
         <div class="card-text">
-            <div class="number">125</div>
+            <div class="number"><?= $totalPegawai ?></div>
             <div class="label">Total Pegawai</div>
         </div>
     </div>
@@ -581,9 +633,7 @@ td{
     <td><?= $row['jumlah_hari'] ?></td>
     <td>
         <?php
-        if($row['status']=='Menunggu'){
-            echo '<span class="badge wait">Menunggu</span>';
-        }elseif($row['status']=='Disetujui'){
+        if($row['status']=='Disetujui'){
             echo '<span class="badge ok">Disetujui</span>';
         }else{
             echo '<span class="badge no">Ditolak</span>';
