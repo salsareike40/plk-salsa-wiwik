@@ -6,16 +6,33 @@ if(!isset($_SESSION['username'])){
     exit;
 }
 $username = $_SESSION['username'];
-$page = basename($_SERVER['PHP_SELF']);
-$success = false;
+$qUser = mysqli_query($conn, "
+    SELECT username, nip, jabatan, unit_kerja
+    FROM pegawai
+    WHERE username='$username'
+");
+
+$user = mysqli_fetch_assoc($qUser);
+
+$nama        = $user['username'];
+$nip         = $user['nip'];
+$jabatan     = $user['jabatan'];
+$unit_kerja  = $user['unit_kerja'];
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
-    $nama         = $_POST['nama'];
-    $nip          = $_POST['nip'];
-    $jabatan      = $_POST['jabatan'];
-    $masa_kerja   = $_POST['masa_kerja'];
-    $unit_kerja   = $_POST['unit_kerja'];
+    $jabatan    = $_POST['jabatan'];
+    $unit_kerja = $_POST['unit_kerja'];
+
+    // ✅ UPDATE DATA PEGAWAI
+    mysqli_query($conn,"
+        UPDATE pegawai SET
+            jabatan='$jabatan',
+            unit_kerja='$unit_kerja'
+        WHERE username='$username'
+    ");
+
+    // ⬇️ DATA CUTI
     $jenis_cuti   = $_POST['jenis_cuti'];
     $alasan       = $_POST['alasan'];
     $tgl_mulai    = $_POST['tgl_mulai'];
@@ -26,15 +43,34 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
     mysqli_query($conn,"
         INSERT INTO cuti
-        (nama,nip,jabatan,masa_kerja,unit_kerja,jenis_cuti,alasan,
-         tgl_mulai,tgl_selesai,jumlah_hari,alamat,no_telp,status)
+        (
+            username,
+            nip,
+            jenis_cuti,
+            alasan,
+            tgl_mulai,
+            tgl_selesai,
+            jumlah_hari,
+            alamat,
+            no_telp,
+            status
+        )
         VALUES
-        ('$nama','$nip','$jabatan','$masa_kerja','$unit_kerja','$jenis_cuti','$alasan',
-         '$tgl_mulai','$tgl_selesai','$jumlah_hari','$alamat','$no_telp','Menunggu')
+        (
+            '$nama',
+            '$nip',
+            '$jenis_cuti',
+            '$alasan',
+            '$tgl_mulai',
+            '$tgl_selesai',
+            '$jumlah_hari',
+            '$alamat',
+            '$no_telp',
+            'Menunggu'
+        )
     ");
 
-      $_SESSION['success'] = "Pengajuan cuti berhasil dikirim";
-
+        $_SESSION['success'] = true;
     header("Location: cuti.php");
     exit;
 }
@@ -354,30 +390,24 @@ function closeModal(){
 
         <div class="form-row">
             <label>Nama</label>
-            <input type="text" name="nama" placeholder="Masukkan nama pegawai" required>
+            <input type="text" name="nama" value="<?= $nama ?>" readonly>
         </div>
 
         <div class="form-row">
             <label>NIP</label>
-            <input type="text" name="nip" placeholder="Masukkan NIP" required>
+            <input type="text" name="nip" value="<?= $nip ?>" readonly>
         </div>
 
         <div class="form-row">
             <label>Jabatan</label>
-            <input type="text" name="jabatan" placeholder="Masukkan jabatan">
-        </div>
-
-        <div class="form-row">
-            <label>Masa Kerja</label>
-            <input type="text" name="masa_kerja" placeholder="Contoh: 10 Tahun">
+            <input type="text" name="jabatan" value="<?= $jabatan ?>">
         </div>
 
         <div class="form-row">
             <label>Unit Kerja</label>
-            <input type="text" name="unit_kerja" placeholder="Masukkan unit kerja">
+            <input type="text" name="unit_kerja" value="<?= $unit_kerja ?>">
         </div>
     </div>
-
     <!-- GRID -->
     <div class="grid-2">
 

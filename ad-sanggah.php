@@ -21,7 +21,7 @@ $query = mysqli_query($conn,"
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Sanggahan</title>
+<title>Status Pengajuan</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -230,17 +230,16 @@ td{
     color:#aaa;
 }
 .btn-detail{
-    background:#22a6a1;
+    background:#5678b8;
     color:#fff;
-    padding:8px 16px;
-    border-radius:12px;
+    padding:10px 22px;
+    border-radius:10px;
     text-decoration:none;
-    font-size:13px;
+    font-size:14px;
     font-weight:600;
     display:inline-flex;
     align-items:center;
     gap:6px;
-    transition:.2s;
 }
 
 .btn-detail:hover{
@@ -345,13 +344,13 @@ td{
             <a href="ad-dashboard.php">📊 Dashboard</a>
             <a href="data-pegawai.php">🧑‍💼 Data Pegawai</a>
             <a href="pengajuan.php">📑 Pengajuan Cuti</a>
-            <a href="sanggahan-admin.php" class="active">⚠️ Sanggahan</a>
+            <a href="ad-sanggah.php" class="active">⚠️ Status Pengajuan</a>
 
         <?php else: ?>
 
             <a href="dashboard.php">📊 Dashboard</a>
             <a href="cuti.php">🗓️ Cuti</a>
-            <a href="sanggahan.php">⚠️ Sanggahan</a>
+            <a href="sanggahan.php">⚠️ Status Pengajuan</a>
 
         <?php endif; ?>
 
@@ -404,7 +403,7 @@ td{
             <?php while($row=mysqli_fetch_assoc($query)): ?>
 <tr>
     <td><?= $no++ ?></td>
-    <td><?= $row['nama'] ?></td>
+    <td><?= $row['username'] ?></td>
     <td><?= $row['nip'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td>
@@ -464,7 +463,7 @@ function openDetail(id){
     document.getElementById('modalDetail').style.display = 'flex';
     document.getElementById('detailContent').innerHTML = '<p>Loading...</p>';
 
-    fetch('detail-cuti.php?id=' + id)
+    fetch('ad-detail-cuti.php?id=' + id)
         .then(res => res.text())
         .then(data => {
             document.getElementById('detailContent').innerHTML = data;

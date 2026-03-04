@@ -95,6 +95,22 @@ if(!isset($_SESSION['username'])){
 }
 
 $username = $_SESSION['username'];
+/* ===== DATA CUTI BULANAN ===== */
+
+$tahun = $_GET['tahun'] ?? date('Y');
+
+$dataBulanan = array_fill(1,12,0);
+
+$qBulanan = mysqli_query($conn,"
+    SELECT MONTH(tgl_pengajuan) AS bulan, COUNT(*) AS total
+    FROM cuti
+    WHERE YEAR(tgl_pengajuan)='$tahun'
+    GROUP BY MONTH(tgl_pengajuan)
+");
+
+while($row = mysqli_fetch_assoc($qBulanan)){
+    $dataBulanan[(int)$row['bulan']] = (int)$row['total'];
+}
 ?>
 
 <!DOCTYPE html>
@@ -296,13 +312,6 @@ body{
     color:#aaa;
 }
 
-
-
-
-
-
-
-
 /* ================= CHARTS ================= */
 .content{
     display:grid;
@@ -477,13 +486,13 @@ td{
             <a href="ad-dashboard.php" class="active">📊 Dashboard</a>
             <a href="data-pegawai.php">🧑‍💼 Data Pegawai</a>
             <a href="pengajuan.php">📑 Pengajuan Cuti</a>
-            <a href="ad-sanggah.php">⚠️ Sanggahan</a>
+            <a href="ad-sanggah.php">⚠️ Status Pengajuan</a>
 
         <?php } elseif ($_SESSION['role'] === 'pegawai') { ?>
 
             <a href="dashboard.php" class="active">📊 Dashboard</a>
             <a href="cuti.php">🗓️ Cuti</a>
-            <a href="sanggahan.php">⚠️ Sanggahan</a>
+            <a href="sanggahan.php">⚠️ Status Pengajuan</a>
 
         <?php } ?>
 
@@ -610,7 +619,7 @@ td{
 
 <?php while($row = mysqli_fetch_assoc($query)): ?>
 <tr>
-    <td><?= $row['nama'] ?></td>
+    <td><?= $row['username'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>
     <td><?= $row['jumlah_hari'] ?></td>
@@ -636,9 +645,10 @@ td{
         <div class="box-header">
         <h3>Pengajuan Cuti Bulanan</h3>
 
-        <select class="year-select">
-            <option>2026</option>
-            <option>2025</option>
+        <select class="year-select" onchange="changeYear(this.value)">
+            <option value="2025" <?= $tahun==2025?'selected':'' ?>>2025</option>
+            <option value="2026" <?= $tahun==2026?'selected':'' ?>>2026</option>
+            <option value="2027" <?= $tahun==2027?'selected':'' ?>>2027</option>
         </select>
     </div>
 
@@ -673,7 +683,7 @@ td{
 
         <?php while($row = mysqli_fetch_assoc($querySanggahan)): ?>
         <tr>
-            <td><?= $row['nama'] ?></td>
+            <td><?= $row['username'] ?></td>
             <td><?= $row['jenis_cuti'] ?></td>
             <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>
             <td><?= $row['jumlah_hari'] ?></td>
@@ -688,7 +698,9 @@ td{
 
 
 <script>
-
+function changeYear(tahun){
+    window.location = "ad-dashboard.php?tahun=" + tahun;
+}
 const cutiLabels = <?= json_encode(array_keys($dataPersen)) ?>;
 const cutiData   = <?= json_encode(array_values($dataPersen)) ?>;
 
@@ -739,10 +751,10 @@ if(donutCtx){
 new Chart(document.getElementById('cutiBulananChart'),{
     type:'bar',
     data:{
-        labels:['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Des'],
+        labels:['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Nov','Des'],
         datasets:[
             {
-                data:[17,13,8,6,3,3,2,2,2,2,2],
+                data: <?= json_encode(array_values($dataBulanan)) ?>,
                 backgroundColor:[
                     '#9ec5f8',
                     '#1e88e5',

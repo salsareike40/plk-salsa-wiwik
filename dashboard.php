@@ -5,6 +5,41 @@ if ($_SESSION['role'] === 'admin') {
     header("Location: ad-dashboard.php");
     exit;
 }
+// ================= DATA USER LOGIN =================
+$username = $_SESSION['username'];
+
+$qUser = mysqli_query($conn,"
+    SELECT nip, nama_pegawai, sisa_cuti
+    FROM pegawai
+    WHERE username='$username'
+");
+
+$user = mysqli_fetch_assoc($qUser);
+
+$nip       = $user['nip'];
+$nama      = $user['nama_pegawai'];
+// Jatah default cuti tahunan
+$jatahCuti = 12;
+
+// Hitung total hari cuti tahunan yang sudah disetujui
+$qPakai = mysqli_query($conn,"
+    SELECT SUM(jumlah_hari) AS total_pakai
+    FROM cuti
+    WHERE nip='$nip'
+    AND jenis_cuti='Cuti Tahunan'
+    AND status='Disetujui'
+");
+
+$dataPakai = mysqli_fetch_assoc($qPakai);
+$cutiTerpakai = $dataPakai['total_pakai'] ?? 0;
+
+// Hitung sisa cuti
+$sisaCuti = $jatahCuti - $cutiTerpakai;
+
+// Jangan sampai minus
+if($sisaCuti < 0){
+    $sisaCuti = 0;
+}
 
 $qPegawai = mysqli_query($conn,"
     SELECT COUNT(*) AS total
@@ -61,19 +96,38 @@ if($selisih != 0){
 
 
 // TOTAL pengajuan cuti
-$qTotal = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti");
+$qTotal = mysqli_query($conn, "
+    SELECT COUNT(*) AS total 
+    FROM cuti 
+    WHERE nip='$nip'
+");
 $total = mysqli_fetch_assoc($qTotal)['total'];
 
 // Menunggu persetujuan
-$qMenunggu = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti WHERE status='Menunggu'");
+$qMenunggu = mysqli_query($conn, "
+    SELECT COUNT(*) AS total 
+    FROM cuti 
+    WHERE nip='$nip' 
+    AND status='Menunggu'
+");
 $menunggu = mysqli_fetch_assoc($qMenunggu)['total'];
 
 // Disetujui
-$qSetuju = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti WHERE status='Disetujui'");
+$qSetuju = mysqli_query($conn, "
+    SELECT COUNT(*) AS total 
+    FROM cuti 
+    WHERE nip='$nip' 
+    AND status='Disetujui'
+");
 $setuju = mysqli_fetch_assoc($qSetuju)['total'];
 
 // Ditolak
-$qTolak = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti WHERE status='Ditolak'");
+$qTolak = mysqli_query($conn, "
+    SELECT COUNT(*) AS total 
+    FROM cuti 
+    WHERE nip='$nip' 
+    AND status='Ditolak'
+");
 $tolak = mysqli_fetch_assoc($qTolak)['total'];
 
 
@@ -81,14 +135,14 @@ $query = mysqli_query($conn, "
     SELECT * FROM cuti
     WHERE status IN ('Disetujui','Ditolak')
     ORDER BY tgl_pengajuan DESC
-    LIMIT 5
+    LIMIT 8
 ");
 
 $querySanggahan = mysqli_query($conn,"
     SELECT * FROM cuti
     WHERE status='Menunggu'
     ORDER BY tgl_pengajuan DESC
-    LIMIT 5
+    LIMIT 8
 ");
 
 
@@ -324,22 +378,56 @@ body{
     grid-template-columns:1.5fr 1fr;
     gap:25px;
 }
-
-table{
+.user-table table{
     width:100%;
     border-collapse:collapse;
+    table-layout:fixed;
 }
 
-th{
+.user-table th{
     text-align:left;
-    font-size:13px;
-    color:#777;
-    padding-bottom:10px;
+    font-size:14px;
+    color:#6b7280;
+    padding:14px 18px;
+    border-bottom:1px solid #e5e7eb;
 }
 
-td{
-    padding:10px 0;
+.user-table td{
+    padding:14px 18px;
     font-size:14px;
+    border-bottom:1px solid #f1f5f9;
+}
+
+.user-table tr:last-child td{
+    border-bottom:none;
+}
+
+/* Atur lebar kolom */
+.user-table th:nth-child(1),
+.user-table td:nth-child(1){
+    width:40%;
+}
+
+.user-table th:nth-child(2),
+.user-table td:nth-child(2){
+    width:25%;
+}
+
+.user-table th:nth-child(3),
+.user-table td:nth-child(3){
+    width:10%;
+    text-align:center;
+}
+
+.user-table th:nth-child(4),
+.user-table td:nth-child(4){
+    width:15%;
+    text-align:center;
+}
+
+/* Hover effect */
+.user-table tbody tr:hover{
+    background:#f9fafb;
 }
 
 .badge{
@@ -490,6 +578,66 @@ td{
 .divider{
     color:#aaa;
 }
+/* ===== USER DASHBOARD ===== */
+
+.user-welcome{
+    display:flex;
+    align-items:center;
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.avatar{
+    width:55px;
+    height:55px;
+    border-radius:50%;
+    background:#ccc;
+}
+
+.user-welcome h2{
+    font-size:20px;
+    font-weight:600;
+}
+
+.user-cards{
+    display:flex;
+    gap:20px;
+    margin-bottom:30px;
+    flex-wrap:wrap;
+}
+
+.u-card{
+    flex:1;
+    min-width:180px;
+    padding:18px 20px;
+    border-radius:16px;
+    background:#dbe7f5;
+    box-shadow:0 8px 20px rgba(0,0,0,0.05);
+}
+
+.u-card h3{
+    margin-top:5px;
+    font-size:22px;
+}
+
+.blue{ background:#dbeafe; }
+.gray{ background:#e5e7eb; }
+.yellow{ background:#fef3c7; }
+.green{ background:#d1fae5; }
+
+.user-table{
+    background:#fff;
+    padding:25px;
+    border-radius:18px;
+    box-shadow:0 10px 25px rgba(0,0,0,0.05);
+}
+
+.user-table h3{
+    margin-bottom:15px;
+}
+.red{
+    background:#fecaca;
+}
 </style>
 </head>
 <body>
@@ -523,155 +671,47 @@ td{
     </div>
 </div>
 
+<!-- ===== USER DASHBOARD STYLE ===== -->
 
-    <!-- STAT -->
-    <div class="stats">
-
-    <!-- TOTAL PEGAWAI -->
-    <div class="card total">
-        <div class="icon blue">👥</div>
-        <div class="card-text">
-            <div class="number"><?= $totalPegawai ?></div>
-            <div class="label">Total Pegawai</div>
-        </div>
-    </div>
-
-    <!-- KANAN -->
-    <div class="small-cards">
-
-        <div class="card">
-            <div class="icon purple">📝</div>
-            <div class="card-text">
-                <div class="number"><?= $total ?></div>
-                <div class="label">Pengajuan</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="icon yellow">⏳</div>
-            <div class="card-text">
-                <div class="number"><?= $menunggu ?></div>
-                <div class="label">Menunggu Persetujuan</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="icon green">✔</div>
-            <div class="card-text">
-                <div class="number"><?= $setuju ?></div>
-                <div class="label">Disetujui</div>
-            </div>
-        </div>
-
-        <div class="card">
-            <div class="icon red">✖</div>
-            <div class="card-text">
-                <div class="number"><?= $tolak ?></div>
-                <div class="label">Ditolak</div>
-            </div>
-        </div>
-
-    </div>
+<div class="user-welcome">
+    <img src="aset/avatar.jpeg" class="avatar">
+    <h2>Selamat Datang, <?= $username ?></h2>
 </div>
 
-
-
-<div class="content">
-    <div class="box jenis-cuti">
-        <h3>Jenis Cuti</h3>
-
-        <div class="cuti-wrap">
-            <!-- DONUT -->
-            <div class="donut-wrapper">
-                <canvas id="cutiChart"></canvas>
-                <div class="donut-center">100%</div>
-            </div>
-
-            <!-- LEGEND -->
-            <div class="cuti-legend">
-                <div><span class="dot blue"></span> Cuti Tahunan <b><?= $dataPersen['Cuti Tahunan'] ?>%</b></div>
-                <div><span class="dot green"></span> Cuti Sakit <b><?= $dataPersen['Cuti Sakit'] ?>%</b></div>
-                <div><span class="dot purple"></span> Cuti Besar <b><?= $dataPersen['Cuti Besar'] ?>%</b></div>
-                <div><span class="dot yellow"></span> Cuti Melahirkan <b><?= $dataPersen['Cuti Melahirkan'] ?>%</b></div>
-                <div><span class="dot red"></span> Alasan Penting <b><?= $dataPersen['Alasan Penting'] ?>%</b></div>
-
-            </div>
-        </div>
+<div class="user-cards">
+    <div class="u-card blue">
+        <div>Sisa Cuti Tahunan</div>
+        <h3><?= $sisaCuti ?> Hari</h3>
     </div>
 
-     <!-- BAWAH : CUTI TERBARU -->
-      <div class="content-dua-box">
-        <div class="box cuti-terbaru">
-            <div class="box-header">
-                <h3>Status Cuti Terbaru</h3>
-            </div>
-
-            <table>
-                <thead>
-                    <tr>
-                        <th>Nama</th>
-                        <th>Jenis Cuti</th>
-                        <th>Tgl Pengajuan</th>
-                        <th>Hari</th>
-                        <th>Status</th>
-                    </tr>
-                </thead>
-                <tbody>
-                <?php if(mysqli_num_rows($query) == 0): ?>
-<tr>
-    <td colspan="5" style="text-align:center;color:#888">
-        Belum ada pengajuan cuti
-    </td>
-</tr>
-<?php endif; ?>
-
-<?php while($row = mysqli_fetch_assoc($query)): ?>
-<tr>
-    <td><?= $row['nama'] ?></td>
-    <td><?= $row['jenis_cuti'] ?></td>
-    <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>
-    <td><?= $row['jumlah_hari'] ?></td>
-    <td>
-        <?php
-        if($row['status']=='Disetujui'){
-            echo '<span class="badge ok">Disetujui</span>';
-        }else{
-            echo '<span class="badge no">Ditolak</span>';
-        }
-        ?>
-    </td>
-</tr>
-<?php endwhile; ?>
-</tbody>
-
-            </table>
-        </div>
-
+    <div class="u-card gray">
+        <div>Pengajuan Saya</div>
+        <h3><?= $total ?></h3>
     </div>
 
-    <div class="box cuti-bulanan">
-        <div class="box-header">
-        <h3>Pengajuan Cuti Bulanan</h3>
-
-        <select class="year-select">
-            <option>2026</option>
-            <option>2025</option>
-        </select>
+    <div class="u-card yellow">
+        <div>Menunggu</div>
+        <h3><?= $menunggu ?></h3>
     </div>
 
-    <canvas id="cutiBulananChart"></canvas>
-    
+    <div class="u-card green">
+        <div>Disetujui</div>
+        <h3><?= $setuju ?></h3>
+    </div>
+
+    <div class="u-card red">
+        <div>Ditolak</div>
+        <h3><?= $tolak ?></h3>
+    </div>
+
 </div>
-<div class="box sanggahan-terbaru">
-    <div class="box-header">
-        <h3>Sanggahan Harian Terbaru</h3>
-        <a href="sanggahan.php" class="link">Lihat Semua ›</a>
-    </div>
+
+<div class="user-table">
+    <h3>Riwayat Pengajuan Terbaru</h3>
 
     <table>
         <thead>
             <tr>
-                <th>Nama</th>
                 <th>Jenis Cuti</th>
                 <th>Tgl Pengajuan</th>
                 <th>Hari</th>
@@ -680,21 +720,31 @@ td{
         </thead>
         <tbody>
 
-        <?php if(mysqli_num_rows($querySanggahan) == 0): ?>
-            <tr>
-                <td colspan="5" style="text-align:center;color:#888">
-                    Tidak ada sanggahan
-                </td>
-            </tr>
-        <?php endif; ?>
+        <?php
+        $qUserCuti = mysqli_query($conn,"
+            SELECT * FROM cuti
+            WHERE nip='$nip'
+            ORDER BY tgl_pengajuan DESC
+            LIMIT 8
+        ");
+        ?>
 
-        <?php while($row = mysqli_fetch_assoc($querySanggahan)): ?>
+        <?php while($row = mysqli_fetch_assoc($qUserCuti)): ?>
         <tr>
-            <td><?= $row['nama'] ?></td>
             <td><?= $row['jenis_cuti'] ?></td>
             <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>
             <td><?= $row['jumlah_hari'] ?></td>
-            <td><span class="badge wait">Menunggu</span></td>
+            <td>
+                <?php
+                if($row['status']=='Menunggu'){
+                    echo '<span class="badge wait">Menunggu</span>';
+                }elseif($row['status']=='Disetujui'){
+                    echo '<span class="badge ok">Disetujui</span>';
+                }else{
+                    echo '<span class="badge no">Ditolak</span>';
+                }
+                ?>
+            </td>
         </tr>
         <?php endwhile; ?>
 
@@ -704,102 +754,7 @@ td{
 
 
 
-<script>
 
-const cutiLabels = <?= json_encode(array_keys($dataPersen)) ?>;
-const cutiData   = <?= json_encode(array_values($dataPersen)) ?>;
-
-
-const donutCtx = document.getElementById('cutiChart');
-
-if(donutCtx){
-    new Chart(donutCtx,{
-        type:'doughnut',
-        data:{
-            labels:[
-                'Cuti Tahunan',
-                'Cuti Sakit',
-                'Cuti Besar',
-                'Cuti Melahirkan',
-                'Alasan Penting'
-            ],
-            datasets:[{
-                data: cutiData,
-                backgroundColor:[
-                    '#1e88e5',
-                    '#43a047',
-                    '#7e57c2',
-                    '#fbc02d',
-                    '#e53935'
-                ],
-                borderWidth:0
-            }]
-        },
-        options:{
-            responsive:true,
-            maintainAspectRatio:false,
-            cutout:'70%',
-            plugins:{
-                legend:{ display:false },
-                tooltip:{
-                    position:'nearest',   // 🔑 NEMPEL KE SLICE YANG DI-HOVER
-            intersect:true,       // hanya aktif kalau benar-benar di slice
-            yAlign:'bottom',
-            caretPadding:12
-}
-
-            }
-        }
-    });
-}
-
-new Chart(document.getElementById('cutiBulananChart'),{
-    type:'bar',
-    data:{
-        labels:['Jan','Feb','Mar','Apr','Mei','Jun','Jul','Agu','Sep','Okt','Des'],
-        datasets:[
-            {
-                data:[17,13,8,6,3,3,2,2,2,2,2],
-                backgroundColor:[
-                    '#9ec5f8',
-                    '#1e88e5',
-                    '#d6e1f2',
-                    '#d6e1f2',
-                    '#e4ebf7',
-                    '#e4ebf7',
-                    '#e4ebf7',
-                    '#e4ebf7',
-                    '#e4ebf7',
-                    '#e4ebf7',
-                    '#e4ebf7'
-                ],
-                borderRadius:8,
-                barThickness:26
-            }
-        ]
-    },
-    options:{
-        plugins:{
-            legend:{ display:false }
-        },
-        scales:{
-            x:{
-                grid:{ display:false }
-            },
-            y:{
-                beginAtZero:true,
-                ticks:{
-                    stepSize:5
-                },
-                grid:{
-                    color:'#e5ebf3'
-                }
-            }
-        }
-    }
-});
-
-</script>
 
 </body>
 </html>

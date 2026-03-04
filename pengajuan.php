@@ -10,10 +10,36 @@ if(!isset($_SESSION['role'])){
 $username = $_SESSION['username'];
 
 // CONTOH QUERY (sesuaikan dengan tabel cuti kamu)
+$username = $_SESSION['username'];
+
+$q = $_GET['q'] ?? '';
+
+$where = "";
+if ($q != '') {
+    $q = mysqli_real_escape_string($conn, $q);
+    $where = "WHERE 
+        cuti.username LIKE '%$q%' 
+        OR cuti.jenis_cuti LIKE '%$q%'
+        OR cuti.status LIKE '%$q%'
+        OR cuti.tgl_mulai LIKE '%$q%'
+        OR cuti.tgl_selesai LIKE '%$q%'";
+}
+
+
 $query = mysqli_query($conn,"
-    SELECT id, nama, jenis_cuti, tgl_mulai, tgl_selesai, status
+    SELECT 
+        cuti.id,
+        cuti.username,
+        cuti.jenis_cuti,
+        cuti.tgl_mulai,
+        cuti.tgl_selesai,
+        cuti.status,
+        pegawai.jabatan,
+        pegawai.unit_kerja
     FROM cuti
-    ORDER BY tgl_mulai DESC
+    JOIN pegawai ON cuti.username = pegawai.username
+    $where
+    ORDER BY cuti.tgl_pengajuan ASC
 ");
 ?>
 <!DOCTYPE html>
@@ -136,20 +162,30 @@ body{
 
 table{
     width:100%;
-    border-collapse:collapse;
-    border-radius:14px;
-    overflow:hidden;
+    border-collapse:separate;
+    border-spacing:0 8px;
 }
 
 thead{
-    background:linear-gradient(90deg,#dfe5f2,#e9edf7);
+    background:#1f5fa5;
 }
 
 thead th{
-    padding:14px;
+    padding:16px;
+    color:white;
     font-weight:600;
-    color:#445;
     text-align:left;
+}
+
+/* supaya header seperti kapsul */
+thead th:first-child{
+    border-top-left-radius:14px;
+    border-bottom-left-radius:14px;
+}
+
+thead th:last-child{
+    border-top-right-radius:14px;
+    border-bottom-right-radius:14px;
 }
 
 tbody td{
@@ -236,7 +272,7 @@ table td:nth-child(6){
     </a>
 
     <a href="ad-sanggah.php" class="<?= $page=='ad-sanggah.php'?'active':'' ?>">
-        ⚠️ Sanggahan
+        ⚠️ Status Sanggahan
     </a>
 </div>
 
@@ -257,8 +293,24 @@ table td:nth-child(6){
     <div class="content">
 
         <div class="search">
-            <input type="text" placeholder="Cari...">
+          <input
+            type="text"
+            name="q"
+            placeholder="Cari..."
+            value="<?= $_GET['q'] ?? '' ?>"
+            onkeyup="doSearch(this.value)">
         </div>
+
+<script>
+let typingTimer;
+
+function doSearch(val){
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(function(){
+        window.location = 'pengajuan.php?q=' + encodeURIComponent(val);
+    }, 600); // tunggu user selesai ngetik
+}
+</script>
 
         <div class="table-wrapper">
             <table>
@@ -276,7 +328,7 @@ table td:nth-child(6){
                 <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><?= $row['nama'] ?></td>
+                        <td><?= $row['username'] ?></td>
                         <td><?= $row['jenis_cuti'] ?></td>
                         <td>
                             <?= date('d M Y',strtotime($row['tgl_mulai'])) ?>
@@ -295,10 +347,10 @@ table td:nth-child(6){
                             <?php endif; ?>
                         </td>
                         <td>
-                            <a href="javascript:void(0)"
+                           <a href="javascript:void(0)"
                                 class="btn-detail"
                                 onclick="openDetail(<?= $row['id'] ?>)">
-                                Detail
+                                👁 Detail
                             </a>
                         </td>
                     </tr>

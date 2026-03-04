@@ -14,9 +14,19 @@ if(!isset($_SESSION['username'])){
 
 $username = $_SESSION['username'];
 
+// ambil data pegawai yang login
+$qUser = mysqli_query($conn, "
+    SELECT nip, nama_pegawai
+    FROM pegawai
+    WHERE username='$username'
+");
+
+$user = mysqli_fetch_assoc($qUser);
+$nipLogin = $user['nip'];
+
 $query = mysqli_query($conn,"
     SELECT * FROM cuti
-    WHERE status='Menunggu'
+    WHERE nip='$nipLogin'
     ORDER BY tgl_pengajuan DESC
 ");
 
@@ -25,7 +35,7 @@ $query = mysqli_query($conn,"
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Sanggahan</title>
+<title>Status Pengajuan</title>
 
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 
@@ -112,7 +122,29 @@ body{
     padding:0;
     box-shadow:none;
 }
+/* ACTION BAR ATAS TABEL */
+.table-action{
+    display:flex;
+    justify-content:flex-start; /* ⬅ kiri */
+    margin-bottom:14px;
+}
 
+.btn-ajukan{
+    background:#1e6fd9;
+    color:#fff;
+    padding:10px 20px;
+    border-radius:10px;
+    text-decoration:none;
+    font-size:14px;
+    font-weight:600;
+    display:inline-flex;
+    align-items:center;
+    gap:8px;
+}
+
+.btn-ajukan:hover{
+    opacity:.9;
+}
 /* === TABLE === */
 /* === PAKSA TABEL RAPAT TOTAL === */
 table{
@@ -225,7 +257,7 @@ tbody tr:hover{
     <div class="menu">
         <a href="dashboard.php">📊 Dashboard</a>
         <a href="cuti.php">🗓️ Cuti</a>
-        <a href="sanggahan.php" class="active">⚠️ Sanggahan</a>
+        <a href="sanggahan.php" class="active">⚠️ Status Pengajuan</a>
     </div>
 </div>
 
@@ -247,6 +279,11 @@ tbody tr:hover{
 
 
     <div class="box">
+        <div class="table-action">
+            <a href="cuti.php" class="btn-ajukan">
+                ➕ Ajukan Cuti
+            </a>
+        </div>
         <table>
             <thead>
                 <tr>
@@ -256,13 +293,14 @@ tbody tr:hover{
                     <th>Jenis Cuti</th>
                     <th>Tanggal Cuti</th>
                     <th>Status</th>
+                    <th>Aksi</th>
                 </tr>
             </thead>
             <tbody>
 
             <?php if(mysqli_num_rows($query)==0): ?>
                 <tr>
-                    <td colspan="5" style="text-align:center;color:#888">
+                    <td colspan="6" class="empty">
                         Belum ada pengajuan cuti
                     </td>
                 </tr>
@@ -271,7 +309,7 @@ tbody tr:hover{
             <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
 <tr>
     <td><?= $no++ ?></td>
-    <td><?= $row['nama'] ?></td>
+    <td><?= $row['username'] ?></td>
     <td><?= $row['nip'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td>
@@ -280,7 +318,23 @@ tbody tr:hover{
         <?= date('d M Y',strtotime($row['tgl_selesai'])) ?>
     </td>
     <td>
-        <span class="badge wait">Menunggu</span>
+        <?php
+            if($row['status']=='Menunggu'){
+                echo '<span class="badge wait">Menunggu</span>';
+            }elseif($row['status']=='Disetujui'){
+                echo '<span class="badge ok">Disetujui</span>';
+            }else{
+                echo '<span class="badge no">Ditolak</span>';
+            }
+        ?>
+    </td>
+    <td>
+        <a href="javascript:void(0)"
+        class="btn-ajukan"
+        style="background:#22a6a1;padding:6px 14px;font-size:12px"
+        onclick="openDetail(<?= $row['id'] ?>)">
+            👁 Detail
+        </a>
     </td>
 </tr>
 <?php endwhile; ?>
@@ -290,5 +344,39 @@ tbody tr:hover{
     </div>
 
 </div>
+<div class="modal-overlay" id="modalDetail"
+     style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);
+            align-items:center;justify-content:center;z-index:9999">
+
+    <div style="background:#f2f4f8;width:600px;border-radius:16px;
+                box-shadow:0 20px 40px rgba(0,0,0,.25)">
+        
+        <div style="padding:16px 20px;display:flex;
+                    justify-content:space-between;align-items:center">
+            <h3>Detail Pengajuan Cuti</h3>
+            <span style="cursor:pointer" onclick="closeDetail()">✕</span>
+        </div>
+
+        <div style="padding:20px" id="detailContent">
+            Loading...
+        </div>
+    </div>
+</div>
+<script>
+function openDetail(id){
+    document.getElementById('modalDetail').style.display = 'flex';
+    document.getElementById('detailContent').innerHTML = 'Loading...';
+
+    fetch('detail-cuti.php?id=' + id)
+        .then(res => res.text())
+        .then(data => {
+            document.getElementById('detailContent').innerHTML = data;
+        });
+}
+
+function closeDetail(){
+    document.getElementById('modalDetail').style.display = 'none';
+}
+</script>
 </body>
 </html>

@@ -76,18 +76,19 @@ $data = mysqli_fetch_assoc($q);
 <input type="hidden" name="id" value="<?= $data['id'] ?>">
 
 <textarea
+    id="catatan"
+    name="catatan"
     rows="4"
-    readonly
+    placeholder="Tulis catatan untuk pegawai..."
     style="
         width:100%;
         padding:10px 14px;
         border-radius:12px;
         border:1px solid #ddd;
-        background:#f3f4f6;
         resize:none;
         margin-bottom:16px
     "
-><?= htmlspecialchars($data['catatan'] ?: 'Belum ada catatan dari admin') ?></textarea>
+><?= htmlspecialchars($data['catatan'] ?? '') ?></textarea>
 
 <style>
 .btn{
@@ -127,29 +128,43 @@ $data = mysqli_fetch_assoc($q);
 }
 </style>
 
-<div style="display:flex;justify-content:flex-end;margin-top:20px">
-    <button
-        type="button"
-        onclick="closeDetail()"
-        style="
-            background:#2b7cff;
-            color:#fff;
-            border:none;
-            padding:12px 28px;
-            border-radius:12px;
-            font-size:14px;
-            font-weight:600;
-            cursor:pointer;
-        "
+<div style="display:flex;gap:16px;justify-content:flex-end">
+
+    <!-- TIDAK SETUJU -->
+    <button 
+        type="submit"
+        name="keputusan"
+        value="Tidak Setuju"
+        class="btn btn-reject"
     >
-        OK
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <path d="M18 6L6 18M6 6l12 12"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"/>
+        </svg>
+        Tidak Setuju
     </button>
+
+    <!-- SETUJU -->
+    <button 
+        type="submit"
+        name="keputusan"
+        value="Setuju"
+        class="btn btn-approve"
+    >
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <path d="M5 13l4 4L19 7"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </svg>
+        Setuju
+    </button>
+
 </div>
 
-<script>
-function closeDetail(){
-    document.getElementById('modalDetail').style.display = 'none';
-}
-</script>
+
 
 </form>

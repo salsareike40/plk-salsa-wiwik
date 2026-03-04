@@ -91,12 +91,26 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'detail') {
 
     exit; // 🔴 penting: hentikan HTML utama
 }
+$q = $_GET['q'] ?? '';
+
+$where = "
+WHERE status = 'aktif'
+AND nama_pegawai IS NOT NULL
+AND nama_pegawai != ''
+";
+
+if ($q != '') {
+    $q = mysqli_real_escape_string($conn, $q);
+    $where .= " AND (
+        nama_pegawai LIKE '%$q%'
+        OR nip LIKE '%$q%'
+    )";
+}
+
 $query = mysqli_query($conn,"
     SELECT id_pegawai, nip, nama_pegawai, jabatan, unit_kerja
     FROM pegawai
-    WHERE status='aktif'
-      AND nama_pegawai IS NOT NULL
-      AND nama_pegawai != ''
+    $where
     ORDER BY id_pegawai DESC
 ");
 ?>
@@ -279,7 +293,7 @@ tbody tr:last-child{
 
 /* BUTTON DETAIL */
 .btn-detail{
-    background:#22a6a1;
+    background:#4f79bd;
     color:#fff;
     padding:8px 16px;
     border-radius:10px;
@@ -424,7 +438,7 @@ button{
     </a>
 
     <a href="ad-sanggah.php" class="<?= $page=='ad-sanggah.php'?'active':'' ?>">
-        ⚠️ Sanggahan
+        ⚠️ Status Pengajuan
     </a>
 </div>
 
@@ -448,8 +462,23 @@ button{
         <div class="toolbar">
             <button class="btn-add" onclick="openModal()">➕ Tambah Pegawai</button>
             <div class="search">
-                <input type="text" placeholder="Cari Nama/NIP...">
-            </div>
+    <input
+        type="text"
+        placeholder="Cari Nama / NIP..."
+        value="<?= $_GET['q'] ?? '' ?>"
+        onkeyup="doSearch(this.value)">
+</div>
+
+<script>
+let typingTimer;
+
+function doSearch(val){
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(function(){
+        window.location = 'data-pegawai.php?q=' + encodeURIComponent(val);
+    }, 600); // tunggu user selesai ngetik
+}
+</script>
         </div>
 
         <!-- TABLE -->

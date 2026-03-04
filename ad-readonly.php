@@ -2,8 +2,20 @@
 include "conn.php";
 
 $id = $_GET['id'];
-$q  = mysqli_query($conn,"SELECT * FROM cuti WHERE id='$id'");
-$d  = mysqli_fetch_assoc($q);
+
+$q = mysqli_query($conn,"
+    SELECT 
+        cuti.*,
+        pegawai.username AS nama,
+        pegawai.jabatan,
+        pegawai.unit_kerja
+    FROM cuti
+    LEFT JOIN pegawai 
+        ON cuti.nip = pegawai.nip
+    WHERE cuti.id = '$id'
+");
+
+$d = mysqli_fetch_assoc($q);
 ?>
 
 <style>
