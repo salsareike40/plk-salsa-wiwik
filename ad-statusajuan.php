@@ -10,10 +10,27 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin'){
 
 $username = $_SESSION['username'];
 
+$qJenis = mysqli_query($conn,"
+    SELECT DISTINCT jenis_cuti 
+    FROM cuti 
+    WHERE jenis_cuti != ''
+");
+
+$jenis = $_GET['jenis'] ?? '';
+
+$where = "WHERE cuti.status='Menunggu'";
+
+if($jenis != ''){
+    $jenis = mysqli_real_escape_string($conn,$jenis);
+    $where .= " AND cuti.jenis_cuti='$jenis'";
+}
+
 $query = mysqli_query($conn,"
-    SELECT * FROM cuti
-    WHERE status='Menunggu'
-    ORDER BY tgl_pengajuan DESC
+    SELECT cuti.*, pegawai.nama_pegawai
+    FROM cuti
+    LEFT JOIN pegawai ON cuti.nip = pegawai.nip
+    $where
+    ORDER BY cuti.tgl_pengajuan DESC
 ");
 
 ?>
@@ -334,7 +351,7 @@ td{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="Kominfo">
-        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
+        <h2>SICUTI</h2>
     </div>
 
     <div class="menu">
@@ -344,7 +361,7 @@ td{
             <a href="ad-dashboard.php">📊 Dashboard</a>
             <a href="data-pegawai.php">🧑‍💼 Data Pegawai</a>
             <a href="pengajuan.php">📑 Pengajuan Cuti</a>
-            <a href="ad-sanggah.php" class="active">⚠️ Status Pengajuan</a>
+            <a href="ad-statusajuan.php" class="active">⚠️ Status Pengajuan</a>
 
         <?php else: ?>
 
@@ -376,6 +393,32 @@ td{
 
 
     <div class="box">
+
+    <div style="margin-bottom:15px">
+
+        <form method="GET">
+
+        <select name="jenis" onchange="this.form.submit()" style="
+        padding:10px 14px;
+        border-radius:10px;
+        border:1px solid #ccc;
+        background:#fff;
+        cursor:pointer;
+        ">
+
+        <option value="">Semua Jenis Cuti</option>
+
+        <?php while($j = mysqli_fetch_assoc($qJenis)): ?>
+            <option value="<?= $j['jenis_cuti'] ?>"
+                <?= ($_GET['jenis'] ?? '') == $j['jenis_cuti'] ? 'selected' : '' ?>>
+                <?= $j['jenis_cuti'] ?>
+            </option>
+        <?php endwhile; ?>
+
+        </select>
+
+        </form>
+    </div>
         <table>
             <thead>
                 <tr>
@@ -403,7 +446,7 @@ td{
             <?php while($row=mysqli_fetch_assoc($query)): ?>
 <tr>
     <td><?= $no++ ?></td>
-    <td><?= $row['username'] ?></td>
+    <td><?= $row['nama_pegawai'] ?></td>
     <td><?= $row['nip'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td>
@@ -463,7 +506,7 @@ function openDetail(id){
     document.getElementById('modalDetail').style.display = 'flex';
     document.getElementById('detailContent').innerHTML = '<p>Loading...</p>';
 
-    fetch('ad-detail-cuti.php?id=' + id)
+    fetch('ad-detail-statusajuan.php?id=' + id)
         .then(res => res.text())
         .then(data => {
             document.getElementById('detailContent').innerHTML = data;

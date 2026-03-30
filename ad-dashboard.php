@@ -75,16 +75,32 @@ $tolak = mysqli_fetch_assoc($qTolak)['total'];
 
 
 $query = mysqli_query($conn, "
-    SELECT * FROM cuti
-    WHERE status IN ('Disetujui','Ditolak')
-    ORDER BY tgl_pengajuan DESC
-    LIMIT 5
+SELECT  
+    cuti.*,
+    pegawai.nip,
+    pegawai.nama_pegawai,
+    GREATEST(
+        12 - IFNULL(
+            (SELECT SUM(jumlah_hari)
+            FROM cuti c2
+            WHERE c2.nip = cuti.nip
+            AND c2.status='Disetujui'
+            ),0
+        ),0
+    ) AS sisa_cuti
+FROM cuti
+LEFT JOIN pegawai ON cuti.nip = pegawai.nip
+WHERE cuti.status IN ('Disetujui','Ditolak')
+ORDER BY tgl_pengajuan DESC
+LIMIT 5
 ");
 
 $querySanggahan = mysqli_query($conn,"
-    SELECT * FROM cuti
-    WHERE status='Menunggu'
-    ORDER BY tgl_pengajuan DESC
+    SELECT cuti.*, pegawai.nip, pegawai.nama_pegawai
+    FROM cuti
+    LEFT JOIN pegawai ON cuti.nip = pegawai.nip
+    WHERE cuti.status='Menunggu'
+    ORDER BY cuti.tgl_pengajuan DESC
     LIMIT 5
 ");
 
@@ -476,7 +492,7 @@ td{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="">
-        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
+        <h2>SICUTI</h2>
     </div>
 
     <div class="menu">
@@ -486,7 +502,7 @@ td{
             <a href="ad-dashboard.php" class="active">📊 Dashboard</a>
             <a href="data-pegawai.php">🧑‍💼 Data Pegawai</a>
             <a href="pengajuan.php">📑 Pengajuan Cuti</a>
-            <a href="ad-sanggah.php">⚠️ Status Pengajuan</a>
+            <a href="ad-statusajuan.php">⚠️ Status Pengajuan</a>
 
         <?php } elseif ($_SESSION['role'] === 'pegawai') { ?>
 
@@ -602,9 +618,11 @@ td{
                 <thead>
                     <tr>
                         <th>Nama</th>
+                        <th>NIP</th>
                         <th>Jenis Cuti</th>
                         <th>Tgl Pengajuan</th>
                         <th>Hari</th>
+                        <th>Sisa Cuti</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -619,10 +637,12 @@ td{
 
 <?php while($row = mysqli_fetch_assoc($query)): ?>
 <tr>
-    <td><?= $row['username'] ?></td>
+    <td><?= $row['nama_pegawai'] ?? $row['username'] ?></td>
+    <td><?= $row['nip'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>
     <td><?= $row['jumlah_hari'] ?></td>
+    <td><?= $row['sisa_cuti'] ?> Hari</td>
     <td>
         <?php
         if($row['status']=='Disetujui'){
@@ -658,13 +678,14 @@ td{
 <div class="box sanggahan-terbaru">
     <div class="box-header">
         <h3>Sanggahan Harian Terbaru</h3>
-        <a href="ad-sanggah.php" class="link">Lihat Semua ›</a>
+        <a href="ad-statusajuan.php" class="link">Lihat Semua ›</a>
     </div>
 
     <table>
         <thead>
             <tr>
                 <th>Nama</th>
+                <th>NIP</th>
                 <th>Jenis Cuti</th>
                 <th>Tgl Pengajuan</th>
                 <th>Hari</th>
@@ -683,7 +704,8 @@ td{
 
         <?php while($row = mysqli_fetch_assoc($querySanggahan)): ?>
         <tr>
-            <td><?= $row['username'] ?></td>
+            <td><?= $row['nama_pegawai'] ?? $row['username'] ?></td>
+            <td><?= $row['nip'] ?></td>
             <td><?= $row['jenis_cuti'] ?></td>
             <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>
             <td><?= $row['jumlah_hari'] ?></td>

@@ -1,22 +1,37 @@
 <?php
 include "conn.php";
 
-$id        = $_POST['id'];
-$catatan   = $_POST['catatan'];
+$id        = mysqli_real_escape_string($conn, $_POST['id']);
+$catatan   = mysqli_real_escape_string($conn, $_POST['catatan']);
 $keputusan = $_POST['keputusan'];
 
-if($keputusan == 'Setuju'){
-    $status = 'Disetujui';
-}else{
-    $status = 'Ditolak';
+if(!$id || !$keputusan){
+    echo "Data tidak lengkap!";
+    exit;
 }
 
-mysqli_query($conn,"
+switch($keputusan){
+    case 'Setuju':
+        $status = 'Disetujui';
+        break;
+    case 'Tidak Setuju':
+        $status = 'Ditolak';
+        break;
+    default:
+        echo "Keputusan tidak valid!";
+        exit;
+}
+
+$update = mysqli_query($conn,"
     UPDATE cuti SET
         status='$status',
         catatan='$catatan'
     WHERE id='$id'
 ");
+
+if(!$update){
+    die("Gagal update: " . mysqli_error($conn));
+}
 ?>
 <!DOCTYPE html>
 <html lang="id">
@@ -24,7 +39,7 @@ mysqli_query($conn,"
 <meta charset="UTF-8">
 <title>Proses Cuti</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<meta http-equiv="refresh" content="2;url=ad-sanggah.php">
+<meta http-equiv="refresh" content="2;url=pengajuan.php">
 <style>
 body{
     background:#eef4fb;

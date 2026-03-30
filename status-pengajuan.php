@@ -24,10 +24,22 @@ $qUser = mysqli_query($conn, "
 $user = mysqli_fetch_assoc($qUser);
 $nipLogin = $user['nip'];
 
+$cari = $_GET['cari'] ?? '';
+
+$where = "WHERE cuti.nip='$nipLogin' AND cuti.status='Menunggu'";
+
+
+if($cari != ''){
+    $where .= " AND (username LIKE '%$cari%' OR nip LIKE '%$cari%' OR jenis_cuti LIKE '%$cari%')";
+}
+
+
 $query = mysqli_query($conn,"
-    SELECT * FROM cuti
-    WHERE nip='$nipLogin'
-    ORDER BY tgl_pengajuan DESC
+    SELECT cuti.*, pegawai.nama_pegawai
+    FROM cuti
+    LEFT JOIN pegawai ON cuti.nip = pegawai.nip
+    $where
+    ORDER BY cuti.tgl_pengajuan DESC
 ");
 
 ?>
@@ -241,7 +253,59 @@ tbody tr:hover{
 .divider{
     color:#aaa;
 }
+/* FILTER BAR */
+.filter-bar{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    margin-bottom:18px;
+}
 
+.filter-bar label{
+    font-size:14px;
+    font-weight:600;
+    color:#333;
+}
+
+.filter-select{
+    padding:10px 14px;
+    border-radius:10px;
+    border:1px solid #dce3f1;
+    background:#ffffff;
+    font-size:14px;
+    font-weight:500;
+    color:#333;
+    cursor:pointer;
+    transition:.2s;
+}
+
+/* HOVER */
+.filter-select:hover{
+    border-color:#0b5aa6;
+}
+
+/* FOCUS */
+.filter-select:focus{
+    outline:none;
+    border-color:#0b5aa6;
+    box-shadow:0 0 0 3px rgba(11,90,166,.15);
+}
+.search-input{
+    flex:1;
+    padding:12px 16px;
+    border-radius:14px;
+    border:1px solid #dce3f1;
+    background:#eef2f7;
+    font-size:14px;
+    transition:0.2s;
+}
+
+.search-input:focus{
+    outline:none;
+    border-color:#0b5aa6;
+    background:#fff;
+    box-shadow:0 0 0 3px rgba(11,90,166,.15);
+}
 </style>
 </head>
 
@@ -251,13 +315,14 @@ tbody tr:hover{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="Kominfo">
-        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
+        <h2>SICUTI</h2>
     </div>
 
     <div class="menu">
         <a href="dashboard.php">📊 Dashboard</a>
         <a href="cuti.php">🗓️ Cuti</a>
-        <a href="sanggahan.php" class="active">⚠️ Status Pengajuan</a>
+        <a href="status-pengajuan.php" class="active">⚠️ Status Pengajuan</a>
+        <a href="riwayat-cuti.php" class="<?= $page=='riwayat-cuti.php'?'active':'' ?>">📑 Riwayat Cuti</a>
     </div>
 </div>
 
@@ -271,7 +336,7 @@ tbody tr:hover{
 
         <div class="header-user">
             <span class="user-icon">👤</span>
-            <span class="user-name"><?= $username ?></span>
+            <span class="user-name"><?= $user['nama_pegawai'] ?> (<?= $user['nip'] ?>)</span>
             <span class="divider">|</span>
             <a href="logout.php">Logout</a>
         </div>
@@ -279,11 +344,23 @@ tbody tr:hover{
 
 
     <div class="box">
-        <div class="table-action">
-            <a href="cuti.php" class="btn-ajukan">
-                ➕ Ajukan Cuti
-            </a>
-        </div>
+
+<div class="filter-bar">
+
+<form method="GET" style="display:flex;align-items:center;gap:12px;width:100%">
+
+<input
+type="text"
+name="cari"
+placeholder="Cari Nama / NIP..."
+value="<?= $_GET['cari'] ?? '' ?>"
+class="search-input"
+>
+
+
+</form>
+</div>
+
         <table>
             <thead>
                 <tr>
@@ -309,7 +386,7 @@ tbody tr:hover{
             <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
 <tr>
     <td><?= $no++ ?></td>
-    <td><?= $row['username'] ?></td>
+    <td><?= $row['nama_pegawai'] ?></td>
     <td><?= $row['nip'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td>

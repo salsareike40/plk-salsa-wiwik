@@ -5,34 +5,48 @@ include "conn.php";
 $error = "";
 
 if (isset($_POST['login'])) {
+
     $username = trim($_POST['username']);
     $password = $_POST['password'];
 
     $username = mysqli_real_escape_string($conn, $username);
 
-    $query = mysqli_query($conn, "
+    $query = mysqli_query($conn,"
         SELECT * FROM pegawai 
         WHERE username='$username' AND status='aktif'
     ");
 
     if ($query && mysqli_num_rows($query) == 1) {
+
         $user = mysqli_fetch_assoc($query);
 
         if (password_verify($password, $user['password'])) {
 
-            $_SESSION['id']       = $user['id'];
+            $_SESSION['id']       = $user['id_pegawai'];
             $_SESSION['username'] = $user['username'];
+            $_SESSION['nama']     = $user['nama_pegawai'];
             $_SESSION['role']     = $user['role'];
+            $_SESSION['nip']      = $user['nip'];
 
-    if($user['role'] == 'admin'){
-    header("Location: ad-dashboard.php");
-} else {
-    header("Location: dashboard.php");
-}
-exit;
+            // CEK JIKA PASSWORD MASIH NIP
+            if($password == $user['nip']){
+                header("Location: ganti-pass.php");
+                exit;
+            }
+
+            // jika bukan password awal
+            if($user['role'] == 'admin'){
+                header("Location: ad-dashboard.php");
+            } else {
+                header("Location: dashboard.php");
+            }
+
+            exit;
+
         } else {
             $error = "Password salah!";
         }
+
     } else {
         $error = "Username tidak ditemukan atau akun tidak aktif!";
     }
@@ -188,7 +202,7 @@ exit;
     </form>
 
     <div class="register">
-    Belum Punya Akun? <a href="register.php">Sign In</a>
+        <a href="lupa-pass.php">Lupa Password?</a>
     </div>
 
 </div>

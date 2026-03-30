@@ -13,6 +13,9 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'detail') {
     $id   = $_GET['id'];
     $mode = $_GET['mode'] ?? 'view';
 
+    $qJabatan = mysqli_query($conn,"SELECT DISTINCT jabatan FROM pegawai WHERE jabatan != ''");
+$qUnit    = mysqli_query($conn,"SELECT DISTINCT unit_kerja FROM pegawai WHERE unit_kerja != ''");
+
     $q = mysqli_query($conn,"
         SELECT nip, nama_pegawai, jabatan, unit_kerja
         FROM pegawai
@@ -52,8 +55,12 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'detail') {
                style="background:#3b6fc4"
                onclick="loadEdit(<?= $id ?>)">✏ Edit</a>
 
-            <a href="hapus-pegawai.php?id=<?= $id ?>" class="btn-detail" style="background:#f39c12"
-               onclick="return confirm('Yakin hapus pegawai?')">🗑 Hapus</a>
+            <a href="javascript:void(0)"
+                class="btn-detail"
+                style="background:#e74c3c"
+                onclick="confirmHapus(<?= $id ?>)">
+                🗑 Hapus
+            </a>
         </div>
         <?php
     } else {
@@ -72,11 +79,31 @@ if (isset($_GET['ajax']) && $_GET['ajax'] === 'detail') {
                 </tr>
                 <tr>
                     <td>Jabatan :</td>
-                    <td><input type="text" name="jabatan" value="<?= $d['jabatan'] ?>" required></td>
+                    <td>
+                        <select name="jabatan" required>
+                            <option value="">Pilih Jabatan</option>
+                            <?php while($j = mysqli_fetch_assoc($qJabatan)): ?>
+                                <option value="<?= $j['jabatan'] ?>"
+                                    <?= ($j['jabatan'] == $d['jabatan']) ? 'selected' : '' ?>>
+                                    <?= $j['jabatan'] ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </td>
                 </tr>
                 <tr>
                     <td>Unit Kerja :</td>
-                    <td><input type="text" name="unit_kerja" value="<?= $d['unit_kerja'] ?>" required></td>
+                    <td>
+                        <select name="unit_kerja" required>
+                            <option value="">Pilih Unit Kerja</option>
+                            <?php while($u = mysqli_fetch_assoc($qUnit)): ?>
+                                <option value="<?= $u['unit_kerja'] ?>"
+                                    <?= ($u['unit_kerja'] == $d['unit_kerja']) ? 'selected' : '' ?>>
+                                    <?= $u['unit_kerja'] ?>
+                                </option>
+                            <?php endwhile; ?>
+                        </select>
+                    </td>
                 </tr>
             </table>
 
@@ -419,7 +446,7 @@ button{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png">
-        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
+        <h2>SICUTI</h2>
     </div>
 
     <?php $page = basename($_SERVER['PHP_SELF']); ?>
@@ -437,7 +464,7 @@ button{
         📥 Pengajuan Cuti
     </a>
 
-    <a href="ad-sanggah.php" class="<?= $page=='ad-sanggah.php'?'active':'' ?>">
+    <a href="ad-statusajuan.php" class="<?= $page=='ad-statusajuan.php'?'active':'' ?>">
         ⚠️ Status Pengajuan
     </a>
 </div>
@@ -621,6 +648,88 @@ function loadEdit(id){
 
     </div>
 </div>
+
+<div id="modalHapus" style="
+display:none;
+position:fixed;
+inset:0;
+background:rgba(0,0,0,.4);
+align-items:center;
+justify-content:center;
+z-index:9999">
+
+    <div style="
+    background:#fff;
+    padding:30px;
+    border-radius:16px;
+    text-align:center;
+    width:320px;
+    box-shadow:0 20px 40px rgba(0,0,0,.25)">
+
+        <h3 style="margin-bottom:10px">Yakin hapus pegawai?</h3>
+
+        <div style="display:flex;gap:10px;justify-content:center">
+
+            <button onclick="prosesHapus()"
+                style="background:#e74c3c;color:#fff;
+                border:none;padding:10px 18px;border-radius:10px">
+                Hapus
+            </button>
+
+            <button onclick="closeHapus()"
+                style="background:#ccc;border:none;
+                padding:10px 18px;border-radius:10px">
+                Batal
+            </button>
+
+        </div>
+
+    </div>
+</div>
+
+<script>
+let idHapus = null;
+
+function confirmHapus(id){
+    idHapus = id;
+    document.getElementById('modalHapus').style.display = 'flex';
+}
+
+function closeHapus(){
+    document.getElementById('modalHapus').style.display = 'none';
+}
+
+function prosesHapus(){
+    window.location = 'hapus-pegawai.php?id=' + idHapus;
+}
+</script>
+
+<?php if(isset($_SESSION['error'])): ?>
+<div id="notifError" style="
+position:fixed;
+top:80px; /* biar turun dikit dari header */
+right:30px; /* kasih jarak kanan */
+background:#e74c3c;
+color:#fff;
+padding:12px 20px;
+border-radius:10px;
+box-shadow:0 10px 25px rgba(0,0,0,.2);
+z-index:9999;
+min-width:220px;
+">
+
+    <?= $_SESSION['error'] ?>
+
+</div>
+
+<script>
+setTimeout(() => {
+    document.getElementById('notifError').style.display='none';
+}, 3000);
+</script>
+
+<?php unset($_SESSION['error']); ?>
+<?php endif; ?>
 
 </body>
 </html>

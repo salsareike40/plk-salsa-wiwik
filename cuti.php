@@ -7,14 +7,14 @@ if(!isset($_SESSION['username'])){
 }
 $username = $_SESSION['username'];
 $qUser = mysqli_query($conn, "
-    SELECT username, nip, jabatan, unit_kerja
+    SELECT nama_pegawai, nip, jabatan, unit_kerja
     FROM pegawai
     WHERE username='$username'
 ");
 
 $user = mysqli_fetch_assoc($qUser);
 
-$nama        = $user['username'];
+$nama = $user['nama_pegawai'];
 $nip         = $user['nip'];
 $jabatan     = $user['jabatan'];
 $unit_kerja  = $user['unit_kerja'];
@@ -37,9 +37,82 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $alasan       = $_POST['alasan'];
     $tgl_mulai    = $_POST['tgl_mulai'];
     $tgl_selesai  = $_POST['tgl_selesai'];
-    $jumlah_hari  = $_POST['jumlah_hari'];
+    $jumlah_hari  = (int)$_POST['jumlah_hari'];
     $alamat       = $_POST['alamat'];
     $no_telp      = $_POST['no_telp'];
+$start = new DateTime($tgl_mulai);
+$end = new DateTime($tgl_selesai);
+$jumlah_hari = $start->diff($end)->days + 1;
+// cek jumlah hari tidak kosong
+if(empty($jumlah_hari) || $jumlah_hari <= 0){
+    echo "<script>alert('Jumlah hari cuti tidak valid');history.back();</script>";
+    exit;
+}
+if($jenis_cuti != 'Cuti Melahirkan' && $jumlah_hari > 12){
+    $_SESSION['error_cuti'] = "Tidak bisa mengajukan cuti, batas maksimal 12 hari";
+    header("Location: cuti.php");
+    exit;
+}
+
+// cek apakah sedang cuti melahirkan
+$qCekMelahirkan = mysqli_query($conn,"
+SELECT COUNT(*) AS total
+FROM cuti
+WHERE nip='$nip'
+AND jenis_cuti='Cuti Melahirkan'
+AND status='Disetujui'
+AND CURDATE() BETWEEN tgl_mulai AND tgl_selesai
+");
+
+$dataCekMelahirkan = mysqli_fetch_assoc($qCekMelahirkan);
+
+if($dataCekMelahirkan['total'] > 0){
+    $_SESSION['error_cuti'] = "Anda sedang dalam masa cuti melahirkan, tidak dapat mengajukan cuti lain.";
+    header("Location: cuti.php");
+    exit;
+}
+
+$qPakai = mysqli_query($conn,"
+    SELECT SUM(jumlah_hari) AS total
+    FROM cuti
+    WHERE nip='$nip'
+    AND jenis_cuti='Cuti Tahunan'
+    AND status='Disetujui'
+");
+
+$data = mysqli_fetch_assoc($qPakai);
+$terpakai = $data['total'] ?? 0;
+$sisa = 12 - $terpakai;
+
+if($jenis_cuti == 'Cuti Tahunan' && $jumlah_hari > $sisa){
+    $_SESSION['error_cuti'] = "Sisa cuti tahunan tidak mencukupi. Sisa cuti Anda: $sisa hari";
+    header("Location: cuti.php");
+    exit;
+}
+// CEK apakah ada cuti yang tanggalnya bentrok
+$qBentrok = mysqli_query($conn,"
+SELECT COUNT(*) AS total
+FROM cuti
+WHERE nip='$nip'
+AND status IN ('Menunggu','Disetujui')
+AND tgl_selesai >= CURDATE()
+AND (
+    ('$tgl_mulai' BETWEEN tgl_mulai AND tgl_selesai)
+    OR
+    ('$tgl_selesai' BETWEEN tgl_mulai AND tgl_selesai)
+    OR
+    (tgl_mulai BETWEEN '$tgl_mulai' AND '$tgl_selesai')
+)
+");
+
+$dataBentrok = mysqli_fetch_assoc($qBentrok);
+
+if($dataBentrok['total'] > 0){
+    $_SESSION['error_cuti'] = "Anda masih memiliki cuti pada tanggal tersebut. Tunggu cuti selesai terlebih dahulu.";
+    header("Location: cuti.php");
+    exit;
+}
+
 
     mysqli_query($conn,"
         INSERT INTO cuti
@@ -57,7 +130,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         )
         VALUES
         (
-            '$nama',
+            '$username',
             '$nip',
             '$jenis_cuti',
             '$alasan',
@@ -330,13 +403,31 @@ body{
 .divider{
     color:#aaa;
 }
-
-
+.form-row select{
+    padding:10px 14px;
+    border-radius:8px;
+    border:1px solid #d8e1ef;
+    background:#eef3fb;
+    width:100%;
+}
+.info-melahirkan{
+    display:none;              /* default: tidak tampil */
+    margin-top:12px;
+    padding:12px 16px;
+    background:#dfe7f5;
+    border-radius:10px;
+    color:#2c5aa0;
+    font-size:14px;
+}
 </style>
 </head>
 <script>
 function closeModal(){
     document.getElementById('successModal').style.display = 'none';
+}
+function toggleInfoMelahirkan(jenis){
+    const box = document.getElementById('infoMelahirkan');
+    box.style.display = (jenis === 'Cuti Melahirkan') ? 'block' : 'none';
 }
 </script>
 
@@ -345,13 +436,14 @@ function closeModal(){
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="">
-        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
+        <h2>SICUTI</h2>
     </div>
 
     <div class="menu">
         <a href="dashboard.php" class="<?= $page=='dashboard.php'?'active':'' ?>">📊 Dashboard</a>
         <a href="cuti.php" class="<?= $page=='cuti.php'?'active':'' ?>">🗓️ Cuti</a>
-        <a href="sanggahan.php" class="<?= $page=='sanggahan.php'?'active':'' ?>">📑 Sanggahan</a>
+        <a href="status-pengajuan.php" class="<?= $page=='status-pengajuan.php'?'active':'' ?>">📑 Status Pengajuan</a>
+        <a href="status-pengajuan.php" class="<?= $page=='riwayat-cuti.php'?'active':'' ?>">📑 Riwayat Cuti</a>
     </div>
 </div>
 
@@ -364,13 +456,23 @@ function closeModal(){
 
         <div class="header-user">
             <span class="user-icon">👤</span>
-            <span class="user-name"><?= $username ?></span>
+            <span class="nama-pegawai"><?= $nama ?> (<?= $nip ?>)</span>
             <span class="divider">|</span>
             <a href="logout.php">Logout</a>
         </div>
     </div>
 
     
+<?php if(isset($_SESSION['error_cuti'])): ?>
+<div class="modal-overlay" id="errorModal">
+    <div class="modal-box">
+        <h3><?= $_SESSION['error_cuti'] ?></h3>
+        <button onclick="closeError()">OK</button>
+    </div>
+</div>
+<?php unset($_SESSION['error_cuti']); endif; ?>
+
+
 <?php if(isset($_SESSION['success'])): ?>
 <div class="modal-overlay" id="successModal">
     <div class="modal-box">
@@ -400,12 +502,28 @@ function closeModal(){
 
         <div class="form-row">
             <label>Jabatan</label>
-            <input type="text" name="jabatan" value="<?= $jabatan ?>">
+            <select name="jabatan">
+                <option value="">Pilih Jabatan</option>
+                <option value="Kadis" <?= $jabatan=='Kadis'?'selected':'' ?>>Kadis</option>
+                <option value="Sekdis" <?= $jabatan=='Sekdis'?'selected':'' ?>>Sekdis</option>
+                <option value="Kabid TI" <?= $jabatan=='Kabid TI'?'selected':'' ?>>Kabid TI</option>
+                <option value="Kabid IKP" <?= $jabatan=='Kabid IKP'?'selected':'' ?>>Kabid IKP</option>
+                <option value="Staff" <?= $jabatan=='Staff'?'selected':'' ?>>Staff</option>
+                <option value="Kabid Umum" <?= $jabatan=='Kabid Umum'?'selected':'' ?>>Kabid Umum</option>
+            </select>
         </div>
 
         <div class="form-row">
             <label>Unit Kerja</label>
-            <input type="text" name="unit_kerja" value="<?= $unit_kerja ?>">
+            <select name="unit_kerja">
+                <option value="">Pilih Unit Kerja</option>
+                <option value="Bidang TI" <?= $unit_kerja=='Bidang TI'?'selected':'' ?>>Bidang TI</option>
+                <option value="Bidang IKP" <?= $unit_kerja=='Bidang IKP'?'selected':'' ?>>Bidang IKP</option>
+                <option value="Sekretariat" <?= $unit_kerja=='Sekretariat'?'selected':'' ?>>Sekretariat</option>
+                <option value="Bidang Statistik" <?= $unit_kerja=='Bidang Statistik'?'selected':'' ?>>Bidang Statistik</option>
+                <option value="Kepegawaian" <?= $unit_kerja=='Kepegawaian'?'selected':'' ?>>Kepegawaian</option>
+                <option value="Bagian Umum" <?= $unit_kerja=='Bagian Umum'?'selected':'' ?>>Bagian Umum</option>
+            </select>
         </div>
     </div>
     <!-- GRID -->
@@ -414,20 +532,63 @@ function closeModal(){
         <!-- JENIS CUTI -->
         <div class="box">
             <h3>Jenis Cuti Yang Diambil</h3>
-            <div class="radio-group">
-                <label><input type="radio" name="jenis_cuti" value="Cuti Tahunan" required> Cuti Tahunan</label>
-                <label><input type="radio" name="jenis_cuti" value="Cuti Besar"> Cuti Besar</label>
-                <label><input type="radio" name="jenis_cuti" value="Cuti Sakit"> Cuti Sakit</label>
-                <label><input type="radio" name="jenis_cuti" value="Cuti Melahirkan"> Cuti Melahirkan</label>
-                <label><input type="radio" name="jenis_cuti" value="Cuti Alasan Penting"> Cuti Karena Alasan Penting</label>
-            </div>
+         <div class="radio-group">
+
+<label>
+<input type="radio" name="jenis_cuti" value="Cuti Tahunan"
+       onchange="toggleInfoMelahirkan(this.value)" required>
+Cuti Tahunan
+</label>
+
+<label>
+<input type="radio" name="jenis_cuti" value="Cuti Besar"
+       onchange="toggleInfoMelahirkan(this.value)">
+Cuti Besar
+</label>
+
+<label>
+<input type="radio" name="jenis_cuti" value="Cuti Sakit"
+       onchange="toggleInfoMelahirkan(this.value)">
+Cuti Sakit
+</label>
+
+<label>
+<input type="radio" name="jenis_cuti" value="Cuti Melahirkan"
+       onchange="toggleInfoMelahirkan(this.value)">
+Cuti Melahirkan
+</label>
+
+<label>
+<input type="radio" name="jenis_cuti" value="Cuti Alasan Penting"
+       onchange="toggleInfoMelahirkan(this.value)">
+Cuti Karena Alasan Penting
+</label>
+
+<!-- Info khusus melahirkan -->
+<div id="infoMelahirkan" class="info-melahirkan">
+    Maksimal cuti melahirkan adalah 3 bulan <b>(90 hari)</b>
+</div>
+
+</div>
         </div>
 
         <!-- KANAN -->
         <div>
             <div class="box">
                     <h3>Alasan Cuti</h3>
-                    <input type="text" name="alasan" placeholder="Masukkan alasan cuti" style="width:100%">
+                    <textarea 
+                        name="alasan" 
+                        placeholder="Masukkan alasan cuti"
+                        rows="4"
+                        style="
+                            width:100%;
+                            padding:10px 14px;
+                            border-radius:8px;
+                            border:1px solid #d8e1ef;
+                            background:#eef3fb;
+                            resize:none;
+                        "
+                    ></textarea>
                 </div>
 
                 <div class="box">
@@ -435,17 +596,17 @@ function closeModal(){
 
                 <div class="form-row">
                     <label>Tanggal Mulai</label>
-                    <input type="date" name="tgl_mulai" required>
+                    <input type="date" name="tgl_mulai" id="tgl_mulai" required>
                 </div>
 
                 <div class="form-row">
                     <label>Tanggal Selesai</label>
-                    <input type="date" name="tgl_selesai" required>
+                    <input type="date" name="tgl_selesai" id="tgl_selesai" required>
                 </div>
 
                 <div class="form-row">
                     <label>Jumlah Hari</label>
-                    <input type="text" name="jumlah_hari" placeholder="Jumlah hari">
+                    <input type="text" name="jumlah_hari" id="jumlah_hari" placeholder="Jumlah hari" readonly>
                 </div>
             </div>
         </div>
@@ -470,6 +631,27 @@ function closeModal(){
 </form>
 
 </div>
+<script>
+function closeError(){
+    document.getElementById('errorModal').style.display='none';
+}
+function hitungHari(){
+    let mulai = document.getElementById("tgl_mulai").value;
+    let selesai = document.getElementById("tgl_selesai").value;
 
+    if(mulai && selesai){
+        let tglMulai = new Date(mulai);
+        let tglSelesai = new Date(selesai);
+        let selisih = (tglSelesai - tglMulai) / (1000 * 60 * 60 * 24) + 1;
+
+        if(selisih >= 0){
+            document.getElementById("jumlah_hari").value = selisih;
+        }
+    }
+}
+
+document.getElementById("tgl_mulai").addEventListener("change", hitungHari);
+document.getElementById("tgl_selesai").addEventListener("change", hitungHari);
+</script>
 </body>
 </html>

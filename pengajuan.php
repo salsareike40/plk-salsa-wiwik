@@ -7,39 +7,44 @@ if(!isset($_SESSION['role'])){
     exit;
 }
 
-$username = $_SESSION['username'];
-
 // CONTOH QUERY (sesuaikan dengan tabel cuti kamu)
 $username = $_SESSION['username'];
 
 $q = $_GET['q'] ?? '';
+$status = $_GET['status'] ?? '';
 
-$where = "";
+$where = "WHERE cuti.status IN ('Disetujui','Ditolak')";
+
+if($status != ''){
+    $status = mysqli_real_escape_string($conn,$status);
+    $where .= " AND cuti.status='$status'";
+}
+
 if ($q != '') {
     $q = mysqli_real_escape_string($conn, $q);
-    $where = "WHERE 
-        cuti.username LIKE '%$q%' 
+    $where .= " AND (
+        pegawai.nama_pegawai LIKE '%$q%' 
         OR cuti.jenis_cuti LIKE '%$q%'
-        OR cuti.status LIKE '%$q%'
-        OR cuti.tgl_mulai LIKE '%$q%'
-        OR cuti.tgl_selesai LIKE '%$q%'";
+    )";
 }
 
 
 $query = mysqli_query($conn,"
-    SELECT 
-        cuti.id,
-        cuti.username,
-        cuti.jenis_cuti,
-        cuti.tgl_mulai,
-        cuti.tgl_selesai,
-        cuti.status,
-        pegawai.jabatan,
-        pegawai.unit_kerja
-    FROM cuti
-    JOIN pegawai ON cuti.username = pegawai.username
-    $where
-    ORDER BY cuti.tgl_pengajuan ASC
+SELECT 
+cuti.id,
+cuti.username,
+cuti.nip,
+cuti.jenis_cuti,
+cuti.tgl_mulai,
+cuti.tgl_selesai,
+cuti.status,
+pegawai.nama_pegawai,
+pegawai.jabatan,
+pegawai.unit_kerja
+FROM cuti
+LEFT JOIN pegawai ON cuti.nip = pegawai.nip
+$where
+ORDER BY cuti.tgl_pengajuan DESC
 ");
 ?>
 <!DOCTYPE html>
@@ -155,37 +160,33 @@ body{
 
 /* ===== TABLE ===== */
 .table-wrapper{
-    background:linear-gradient(145deg,#f1f4fb,#ffffff);
-    border-radius:18px;
-    padding:18px;
+    background:#f1f3f7; /* abu soft */
+    border-radius:16px;
+    padding:16px;
 }
 
 table{
     width:100%;
-    border-collapse:separate;
-    border-spacing:0 8px;
+    border-collapse:collapse; /* penting */
 }
 
-thead{
-    background:#1f5fa5;
+thead tr{
+    background:#2f64a3;
 }
 
 thead th{
-    padding:16px;
-    color:white;
+    padding:14px;
+    color:#fff;
+    text-align:center;
     font-weight:600;
-    text-align:left;
 }
 
-/* supaya header seperti kapsul */
+/* rounded ujung */
 thead th:first-child{
-    border-top-left-radius:14px;
-    border-bottom-left-radius:14px;
+    border-top-left-radius:12px;
 }
-
 thead th:last-child{
-    border-top-right-radius:14px;
-    border-bottom-right-radius:14px;
+    border-top-right-radius:12px;
 }
 
 tbody td{
@@ -194,7 +195,13 @@ tbody td{
 }
 
 tbody tr{
-    border-bottom:1px solid #e4e8f1;
+    background:#ffffff;
+}
+
+tbody td{
+    padding:14px;
+    text-align:center;
+    border-bottom:1px solid #eaeef5;
 }
 
 tbody tr:last-child{
@@ -215,30 +222,29 @@ table td:nth-child(6){
 
 /* STATUS BADGE */
 .status{
-    padding:6px 14px;
-    border-radius:8px;
-    font-size:13px;
+    padding:4px 12px;
+    border-radius:20px;
+    font-size:12px;
     font-weight:600;
-    display:inline-block;
 }
+
 .approved{
-    background:#5aa469;
+    background:#5cb85c;
     color:#fff;
 }
+
 .rejected{
-    background:#d16a6a;
+    background:#d9534f;
     color:#fff;
 }
 
 /* BUTTON DETAIL */
 .btn-detail{
-    background:#4f79bd;
+    background:#4a6fa5;
     color:#fff;
-    padding:8px 18px;
-    border-radius:10px;
-    text-decoration:none;
-    font-size:14px;
-    font-weight:600;
+    padding:6px 14px;
+    border-radius:8px;
+    font-size:13px;
 }
 .pending{
     background:#facc15;
@@ -253,7 +259,7 @@ table td:nth-child(6){
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png">
-        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
+        <h2>SICUTI</h2>
     </div>
 
    <?php $page = basename($_SERVER['PHP_SELF']); ?>
@@ -271,7 +277,7 @@ table td:nth-child(6){
         📑 Pengajuan Cuti
     </a>
 
-    <a href="ad-sanggah.php" class="<?= $page=='ad-sanggah.php'?'active':'' ?>">
+    <a href="ad-statusajuan.php" class="<?= $page=='ad-statusajuan.php'?'active':'' ?>">
         ⚠️ Status Sanggahan
     </a>
 </div>
@@ -292,14 +298,39 @@ table td:nth-child(6){
     <!-- CONTENT -->
     <div class="content">
 
-        <div class="search">
-          <input
-            type="text"
-            name="q"
-            placeholder="Cari..."
-            value="<?= $_GET['q'] ?? '' ?>"
-            onkeyup="doSearch(this.value)">
-        </div>
+      <div style="display:flex;gap:12px;margin-bottom:20px">
+
+<form method="GET" style="display:flex;gap:12px">
+
+<select name="status" onchange="this.form.submit()" style="padding:10px 14px;border-radius:10px;border:1px solid #ccc">
+
+<option value="">Semua Status</option>
+
+<option value="Disetujui" <?= ($_GET['status'] ?? '')=='Disetujui'?'selected':'' ?>>
+Disetujui
+</option>
+
+<option value="Ditolak" <?= ($_GET['status'] ?? '')=='Ditolak'?'selected':'' ?>>
+Ditolak
+</option>
+
+</select>
+
+<input
+type="text"
+name="q"
+placeholder="Cari nama / jenis cuti..."
+value="<?= $_GET['q'] ?? '' ?>"
+style="padding:10px 16px;border-radius:20px;border:1px solid #ccc;width:260px"
+>
+
+<button type="submit" style="padding:10px 16px;border:none;background:#0b57a4;color:white;border-radius:10px">
+Cari
+</button>
+
+</form>
+
+</div>
 
 <script>
 let typingTimer;
@@ -328,7 +359,7 @@ function doSearch(val){
                 <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
                     <tr>
                         <td><?= $no++ ?></td>
-                        <td><?= $row['username'] ?></td>
+                        <td><?= $row['nama_pegawai'] ?></td>
                         <td><?= $row['jenis_cuti'] ?></td>
                         <td>
                             <?= date('d M Y',strtotime($row['tgl_mulai'])) ?>
@@ -386,7 +417,7 @@ function openDetail(id){
     document.getElementById('modalDetail').style.display = 'flex';
     document.getElementById('detailContent').innerHTML = 'Loading...';
 
-    fetch('ad-readonly.php?id=' + id)
+    fetch('ad-detail-pengajuan.php?id=' + id)
         .then(res => res.text())
         .then(data => {
             document.getElementById('detailContent').innerHTML = data;

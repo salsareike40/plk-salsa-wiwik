@@ -21,25 +21,45 @@ $nama      = $user['nama_pegawai'];
 // Jatah default cuti tahunan
 $jatahCuti = 12;
 
-// Hitung total hari cuti tahunan yang sudah disetujui
-$qPakai = mysqli_query($conn,"
-    SELECT SUM(jumlah_hari) AS total_pakai
-    FROM cuti
-    WHERE nip='$nip'
-    AND jenis_cuti='Cuti Tahunan'
-    AND status='Disetujui'
+// cek apakah pernah cuti melahirkan
+// cek apakah ada cuti melahirkan
+$qMelahirkan = mysqli_query($conn,"
+SELECT COUNT(*) AS ada
+FROM cuti
+WHERE nip='$nip'
+AND jenis_cuti='Cuti Melahirkan'
+AND status='Disetujui'
+AND CURDATE() BETWEEN tgl_mulai AND tgl_selesai
 ");
 
-$dataPakai = mysqli_fetch_assoc($qPakai);
-$cutiTerpakai = $dataPakai['total_pakai'] ?? 0;
+$dataMelahirkan = mysqli_fetch_assoc($qMelahirkan);
 
-// Hitung sisa cuti
-$sisaCuti = $jatahCuti - $cutiTerpakai;
+if($dataMelahirkan['ada'] > 0){
 
-// Jangan sampai minus
-if($sisaCuti < 0){
-    $sisaCuti = 0;
+    $sisa = 0;
+
+}else{
+
+    $qPakai = mysqli_query($conn,"
+    SELECT SUM(jumlah_hari) AS total
+    FROM cuti
+    WHERE nip='$nip'
+    AND jenis_cuti!='Cuti Melahirkan'
+    AND status='Disetujui'
+    ");
+
+    $dataPakai = mysqli_fetch_assoc($qPakai);
+    $terpakai = $dataPakai['total'] ?? 0;
+
+    $sisa = $jatahCuti - $terpakai;
+
+    if($sisa < 0){
+        $sisa = 0;
+    }
+
 }
+
+
 
 $qPegawai = mysqli_query($conn,"
     SELECT COUNT(*) AS total
@@ -130,6 +150,25 @@ $qTolak = mysqli_query($conn, "
 ");
 $tolak = mysqli_fetch_assoc($qTolak)['total'];
 
+$jatahMelahirkan = 90;
+
+$qMelahirkan = mysqli_query($conn,"
+SELECT SUM(jumlah_hari) AS total_hari
+FROM cuti
+WHERE nip='$nip'
+AND jenis_cuti='Cuti Melahirkan'
+AND status='Disetujui'
+AND CURDATE() BETWEEN tgl_mulai AND tgl_selesai
+");
+$dataMelahirkan = mysqli_fetch_assoc($qMelahirkan);
+
+$cutiMelahirkanTerpakai = $dataMelahirkan['total_hari'] ?? 0;
+
+$sisaMelahirkan = $jatahMelahirkan - $cutiMelahirkanTerpakai;
+
+if($sisaMelahirkan < 0){
+    $sisaMelahirkan = 0;
+}
 
 $query = mysqli_query($conn, "
     SELECT * FROM cuti
@@ -172,7 +211,7 @@ $username = $_SESSION['username'];
 body{
     background:#eef4fb;
     display:flex;
-    height:100vh;
+    min-height:100vh;
 }
 
 /* ================= SIDEBAR ================= */
@@ -598,32 +637,59 @@ body{
     font-size:20px;
     font-weight:600;
 }
-
 .user-cards{
+    display:grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap:24px; /* jarak lebih lega */
+}
+.u-card{
     display:flex;
-    gap:20px;
-    margin-bottom:30px;
-    flex-wrap:wrap;
+    align-items:center;
+    gap:18px;
+    padding:28px; /* lebih besar */
+    border-radius:20px;
+    min-height:110px; /* bikin tinggi */
+    box-shadow:0 12px 28px rgba(0,0,0,0.08);
+    transition:.25s;
 }
 
-.u-card{
-    flex:1;
-    min-width:180px;
-    padding:18px 20px;
-    border-radius:16px;
-    background:#dbe7f5;
-    box-shadow:0 8px 20px rgba(0,0,0,0.05);
+.u-card:hover{
+    transform:translateY(-5px);
+}
+
+/* icon */
+.u-card .icon{
+    width:55px;
+    height:55px;
+    font-size:24px;
+}
+
+/* text */
+.u-card p{
+    font-size:15px;
 }
 
 .u-card h3{
-    margin-top:5px;
-    font-size:22px;
+    font-size:26px;
+    font-weight:700;
 }
+.blue{ background:linear-gradient(135deg,#c7f0f3,#dff7f9); }
+.purple{ background:linear-gradient(135deg,#e6e0ff,#f2efff); }
+.yellow{ background:linear-gradient(135deg,#fff1c9,#fff7e3); }
+.green{ background:linear-gradient(135deg,#d6f5df,#e9fff0); }
+.red{ background:linear-gradient(135deg,#ffd6d6,#ffecec); }
+.pink{ background:linear-gradient(135deg,#ffd6e0,#ffe9ef); }
 
-.blue{ background:#dbeafe; }
-.gray{ background:#e5e7eb; }
-.yellow{ background:#fef3c7; }
-.green{ background:#d1fae5; }
+.btn-ajukan{
+    display:inline-block;
+    background:#2b7cff;
+    color:#fff;
+    padding:10px 20px;
+    border-radius:20px;
+    margin:10px 0 20px 70px; /* ini bikin sejajar avatar */
+    text-decoration:none;
+    font-weight:600;
+}
 
 .user-table{
     background:#fff;
@@ -638,6 +704,9 @@ body{
 .red{
     background:#fecaca;
 }
+.purple{
+    background:#e9d5ff;
+}
 </style>
 </head>
 <body>
@@ -646,13 +715,14 @@ body{
 <div class="sidebar">
     <div class="logo">
         <img src="aset/kominfo.png" alt="">
-        <h2>Sistem Cuti<br>Dinas Kominfo Kota</h2>
+        <h2>SICUTI</h2>
     </div>
 
     <div class="menu">
         <a href="dashboard.php" class="active">📊 Dashboard</a>
         <a href="cuti.php">🗓️ Cuti</a>
-        <a href="sanggahan.php">⚠️ Sanggahan</a>
+        <a href="status-pengajuan.php">⚠️ Status Pengajuan</a>
+        <a href="riwayat-cuti.php">⚠️ Riwayat Cuti</a>
 
     </div>
 </div>
@@ -665,7 +735,7 @@ body{
 
     <div class="header-user">
         <span class="user-icon">👤</span>
-        <span class="user-name"><?= $username ?></span>
+        <span class="nama-pegawai"><?= $nama ?> (<?= $nip ?>)</span>
         <span class="divider">|</span>
         <a href="logout.php">Logout</a>
     </div>
@@ -675,82 +745,63 @@ body{
 
 <div class="user-welcome">
     <img src="aset/avatar.jpeg" class="avatar">
-    <h2>Selamat Datang, <?= $username ?></h2>
+    <h2>Selamat Datang, <?= $nama ?> (<?= $nip ?>)</h2>
 </div>
+<a href="cuti.php" class="btn-ajukan">+ Ajukan Cuti</a>
+    <div class="user-cards">
 
-<div class="user-cards">
     <div class="u-card blue">
-        <div>Sisa Cuti Tahunan</div>
-        <h3><?= $sisaCuti ?> Hari</h3>
+        <div class="icon">📅</div>
+        <div>
+            <p>Sisa Cuti Tahunan</p>
+            <h3><?= $sisa ?> Hari</h3>
+        </div>
     </div>
 
-    <div class="u-card gray">
-        <div>Pengajuan Saya</div>
-        <h3><?= $total ?></h3>
+    <div class="u-card purple">
+        <div class="icon">📄</div>
+        <div>
+            <p>Pengajuan Saya</p>
+            <h3><?= $total ?></h3>
+        </div>
     </div>
 
     <div class="u-card yellow">
-        <div>Menunggu</div>
-        <h3><?= $menunggu ?></h3>
+        <div class="icon">⏳</div>
+        <div>
+            <p>Menunggu</p>
+            <h3><?= $menunggu ?></h3>
+        </div>
+    </div>
+
+    <div class="u-card pink">
+        <div class="icon">🎀</div>
+        <div>
+            <p>Cuti Melahirkan</p>
+            <h3><?= $sisaMelahirkan ?> Hari</h3>
+        </div>
     </div>
 
     <div class="u-card green">
-        <div>Disetujui</div>
-        <h3><?= $setuju ?></h3>
+        <div class="icon">✔</div>
+        <div>
+            <p>Disetujui</p>
+            <h3><?= $setuju ?></h3>
+        </div>
     </div>
 
     <div class="u-card red">
-        <div>Ditolak</div>
-        <h3><?= $tolak ?></h3>
+        <div class="icon">✖</div>
+        <div>
+            <p>Ditolak</p>
+            <h3><?= $tolak ?></h3>
+        </div>
     </div>
 
 </div>
 
-<div class="user-table">
-    <h3>Riwayat Pengajuan Terbaru</h3>
-
-    <table>
-        <thead>
-            <tr>
-                <th>Jenis Cuti</th>
-                <th>Tgl Pengajuan</th>
-                <th>Hari</th>
-                <th>Status</th>
-            </tr>
-        </thead>
-        <tbody>
-
-        <?php
-        $qUserCuti = mysqli_query($conn,"
-            SELECT * FROM cuti
-            WHERE nip='$nip'
-            ORDER BY tgl_pengajuan DESC
-            LIMIT 8
-        ");
-        ?>
-
-        <?php while($row = mysqli_fetch_assoc($qUserCuti)): ?>
-        <tr>
-            <td><?= $row['jenis_cuti'] ?></td>
-            <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>
-            <td><?= $row['jumlah_hari'] ?></td>
-            <td>
-                <?php
-                if($row['status']=='Menunggu'){
-                    echo '<span class="badge wait">Menunggu</span>';
-                }elseif($row['status']=='Disetujui'){
-                    echo '<span class="badge ok">Disetujui</span>';
-                }else{
-                    echo '<span class="badge no">Ditolak</span>';
-                }
-                ?>
-            </td>
-        </tr>
-        <?php endwhile; ?>
-
-        </tbody>
-    </table>
 </div>
+
 
 
 

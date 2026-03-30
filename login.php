@@ -50,7 +50,7 @@ if (isset($_POST['login'])) {
 <html lang="id">
 <head>
 <meta charset="UTF-8">
-<title>Login Sistem Cuti Dinas Kominfo Kota</title>
+<title>Login SICUTI</title>
 
 <style>
 body{

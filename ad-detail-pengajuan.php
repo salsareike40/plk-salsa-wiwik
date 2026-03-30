@@ -6,7 +6,7 @@ $id = $_GET['id'];
 $q = mysqli_query($conn,"
     SELECT 
         cuti.*,
-        pegawai.username AS nama,
+        pegawai.nama_pegawai,
         pegawai.jabatan,
         pegawai.unit_kerja
     FROM cuti
@@ -90,7 +90,7 @@ $d = mysqli_fetch_assoc($q);
     <div class="grid section">
         <div class="card">
             <div class="label">Nama</div>
-            <div class="value"><?= $d['nama'] ?></div>
+            <div class="value"><?= $d['nama_pegawai'] ?></div>
 
             <div class="label" style="margin-top:10px">NIP</div>
             <div class="value"><?= $d['nip'] ?></div>

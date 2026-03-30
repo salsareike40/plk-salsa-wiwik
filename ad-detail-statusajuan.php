@@ -4,16 +4,15 @@ include "conn.php";
 $id = $_GET['id'] ?? $_POST['id'];
 
 $q = mysqli_query($conn,"
-    SELECT 
-        cuti.*,
-        pegawai.nama_pegawai,
-        pegawai.jabatan,
-        pegawai.unit_kerja
-    FROM cuti
-    JOIN pegawai ON cuti.nip = pegawai.nip
-    WHERE cuti.id='$id'
+SELECT 
+    cuti.*,
+    pegawai.nama_pegawai,
+    pegawai.jabatan,
+    pegawai.unit_kerja
+FROM cuti
+LEFT JOIN pegawai ON cuti.nip = pegawai.nip
+WHERE cuti.id='$id'
 ");
-
 $data = mysqli_fetch_assoc($q);
 ?>
 
@@ -64,35 +63,31 @@ $data = mysqli_fetch_assoc($q);
         </div>
 
         <label style="font-size:13px;color:#777">Alasan</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['alasan'] ?: 'Tidak ada alasan' ?>
+        <div style="background:#fff;padding:10px 14px;border-radius:12px">
+            <?= nl2br($data['alasan']) ?>
         </div>
     </div>
-       
-    
 
 </div>
 
 <hr style="margin:24px 0;border:1px solid #e0e6ef">
 
 <input type="hidden" name="id" value="<?= $data['id'] ?>">
-<label style="font-size:13px;color:#777">Catatan Admin</label>
+
 <textarea
-rows="4"
-readonly
-style="
-width:100%;
-padding:10px 14px;
-border-radius:12px;
-border:1px solid #ddd;
-background:#f3f4f6;
-resize:none;
-margin-bottom:16px
-">
-<?php
-echo htmlspecialchars($data['catatan_admin'] ?: 'Belum ada catatan dari admin');
-?>
-</textarea>
+    id="catatan"
+    name="catatan"
+    rows="4"
+    placeholder="Tulis catatan untuk pegawai..."
+    style="
+        width:100%;
+        padding:10px 14px;
+        border-radius:12px;
+        border:1px solid #ddd;
+        resize:none;
+        margin-bottom:16px
+    "
+><?= htmlspecialchars($data['catatan'] ?? '') ?></textarea>
 
 <style>
 .btn{
@@ -132,29 +127,43 @@ echo htmlspecialchars($data['catatan_admin'] ?: 'Belum ada catatan dari admin');
 }
 </style>
 
-<div style="display:flex;justify-content:flex-end;margin-top:20px">
-    <button
-        type="button"
-        onclick="closeDetail()"
-        style="
-            background:#2b7cff;
-            color:#fff;
-            border:none;
-            padding:12px 28px;
-            border-radius:12px;
-            font-size:14px;
-            font-weight:600;
-            cursor:pointer;
-        "
+<div style="display:flex;gap:16px;justify-content:flex-end">
+
+    <!-- TIDAK SETUJU -->
+    <button 
+        type="submit"
+        name="keputusan"
+        value="Tidak Setuju"
+        class="btn btn-reject"
     >
-        OK
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <path d="M18 6L6 18M6 6l12 12"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"/>
+        </svg>
+        Tidak Setuju
     </button>
+
+    <!-- SETUJU -->
+    <button 
+        type="submit"
+        name="keputusan"
+        value="Setuju"
+        class="btn btn-approve"
+    >
+        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
+            <path d="M5 13l4 4L19 7"
+                  stroke="white"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"/>
+        </svg>
+        Setuju
+    </button>
+
 </div>
 
-<script>
-function closeDetail(){
-    document.getElementById('modalDetail').style.display = 'none';
-}
-</script>
+
 
 </form>

@@ -25,7 +25,7 @@ $data = mysqli_fetch_assoc($q);
     <div>
         <label style="font-size:13px;color:#777">Nama</label>
         <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['username'] ?>
+            <?= $data['nama_pegawai'] ?>
         </div>
 
         <label style="font-size:13px;color:#777">NIP</label>
@@ -64,31 +64,43 @@ $data = mysqli_fetch_assoc($q);
         </div>
 
         <label style="font-size:13px;color:#777">Alasan</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px">
-            <?= nl2br($data['alasan']) ?>
+        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
+            <?= $data['alasan'] ?: 'Tidak ada alasan' ?>
         </div>
     </div>
+       
+    
 
 </div>
 
 <hr style="margin:24px 0;border:1px solid #e0e6ef">
 
 <input type="hidden" name="id" value="<?= $data['id'] ?>">
+<label style="
+    font-size:13px;
+    font-weight:600;
+    color:#64748b;
+    display:block;
+    margin-bottom:8px;
+    letter-spacing:.3px;
+">
+    📝 CATATAN ADMIN
+</label>
 
-<textarea
-    id="catatan"
-    name="catatan"
-    rows="4"
-    placeholder="Tulis catatan untuk pegawai..."
-    style="
-        width:100%;
-        padding:10px 14px;
-        border-radius:12px;
-        border:1px solid #ddd;
-        resize:none;
-        margin-bottom:16px
-    "
-><?= htmlspecialchars($data['catatan'] ?? '') ?></textarea>
+<div style="
+    background:#ffffff;
+    padding:16px 18px;
+    border-radius:14px;
+    border:1px solid #e2e8f0;
+    box-shadow:0 4px 12px rgba(0,0,0,.06);
+    color:#334155;
+    font-size:14px;
+    line-height:1.6;
+    min-height:70px;
+    margin-bottom:16px;
+">
+    <?= nl2br(htmlspecialchars($data['catatan'] ?? 'Belum ada catatan dari admin')) ?>
+</div>
 
 <style>
 .btn{
@@ -128,43 +140,29 @@ $data = mysqli_fetch_assoc($q);
 }
 </style>
 
-<div style="display:flex;gap:16px;justify-content:flex-end">
-
-    <!-- TIDAK SETUJU -->
-    <button 
-        type="submit"
-        name="keputusan"
-        value="Tidak Setuju"
-        class="btn btn-reject"
+<div style="display:flex;justify-content:flex-end;margin-top:20px">
+    <button
+        type="button"
+        onclick="closeDetail()"
+        style="
+            background:#2b7cff;
+            color:#fff;
+            border:none;
+            padding:12px 28px;
+            border-radius:12px;
+            font-size:14px;
+            font-weight:600;
+            cursor:pointer;
+        "
     >
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-            <path d="M18 6L6 18M6 6l12 12"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-        </svg>
-        Tidak Setuju
+        OK
     </button>
-
-    <!-- SETUJU -->
-    <button 
-        type="submit"
-        name="keputusan"
-        value="Setuju"
-        class="btn btn-approve"
-    >
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-            <path d="M5 13l4 4L19 7"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </svg>
-        Setuju
-    </button>
-
 </div>
 
-
+<script>
+function closeDetail(){
+    document.getElementById('modalDetail').style.display = 'none';
+}
+</script>
 
 </form>
