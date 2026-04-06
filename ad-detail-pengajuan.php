@@ -16,6 +16,26 @@ $q = mysqli_query($conn,"
 ");
 
 $d = mysqli_fetch_assoc($q);
+// ===== HITUNG SISA CUTI =====
+$jatah = 12;
+
+// total cuti yang sudah disetujui (selain melahirkan)
+$qPakai = mysqli_query($conn,"
+    SELECT SUM(jumlah_hari) AS total
+    FROM cuti
+    WHERE nip='".$d['nip']."'
+    AND status='Disetujui'
+    AND jenis_cuti != 'Cuti Melahirkan'
+");
+
+$dataPakai = mysqli_fetch_assoc($qPakai);
+$terpakai = $dataPakai['total'] ?? 0;
+
+$sisaCuti = $jatah - $terpakai;
+
+if($sisaCuti < 0){
+    $sisaCuti = 0;
+}
 ?>
 
 <style>
@@ -41,14 +61,19 @@ $d = mysqli_fetch_assoc($q);
     display:grid;
     grid-template-columns:1fr 1fr;
     gap:16px;
+    align-items:start; /* 🔥 ini penting */
 }
 
 .card{
     background:#ffffff;
     border:1px solid #e5e7eb;
     border-radius:14px;
-    padding:14px 16px;
+    padding:16px 18px;
     font-size:14px;
+
+    display:flex;
+    flex-direction:column;
+    gap:10px; /* 🔥 pengganti margin-top */
 }
 
 .label{
@@ -92,30 +117,32 @@ $d = mysqli_fetch_assoc($q);
             <div class="label">Nama</div>
             <div class="value"><?= $d['nama_pegawai'] ?></div>
 
-            <div class="label" style="margin-top:10px">NIP</div>
+            <div class="label">NIP</div>
             <div class="value"><?= $d['nip'] ?></div>
 
-            <div class="label" style="margin-top:10px">Jabatan</div>
+            <div class="label">Jabatan</div>
             <div class="value"><?= $d['jabatan'] ?></div>
 
-            <div class="label" style="margin-top:10px">Unit Kerja</div>
+            <div class="label">Unit Kerja</div>
             <div class="value"><?= $d['unit_kerja'] ?></div>
+            <div class="label">Sisa Cuti</div>
+            <div class="value"><?= $sisaCuti ?> Hari</div>
         </div>
 
         <div class="card">
             <div class="label">Jenis Cuti</div>
             <div class="value"><?= $d['jenis_cuti'] ?></div>
 
-            <div class="label" style="margin-top:10px">Tanggal</div>
+            <div class="label">Tanggal</div>
             <div class="value">
                 <?= date('d M Y',strtotime($d['tgl_mulai'])) ?> –
                 <?= date('d M Y',strtotime($d['tgl_selesai'])) ?>
             </div>
 
-            <div class="label" style="margin-top:10px">Lama Cuti</div>
+            <div class="label">Lama Cuti</div>
             <div class="value"><?= $d['jumlah_hari'] ?> Hari</div>
 
-            <div class="label" style="margin-top:10px">Status</div>
+            <div class="label">Status</div>
             <?php if($d['status']=='Menunggu'): ?>
                 <span class="badge wait">Menunggu</span>
             <?php elseif($d['status']=='Disetujui'): ?>

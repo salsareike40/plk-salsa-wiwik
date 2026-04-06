@@ -46,6 +46,7 @@ if($dataMelahirkan['ada'] > 0){
     WHERE nip='$nip'
     AND jenis_cuti!='Cuti Melahirkan'
     AND status='Disetujui'
+    AND YEAR(tgl_mulai) = YEAR(CURDATE())
     ");
 
     $dataPakai = mysqli_fetch_assoc($qPakai);
@@ -686,7 +687,7 @@ body{
     color:#fff;
     padding:10px 20px;
     border-radius:20px;
-    margin:10px 0 20px 70px; /* ini bikin sejajar avatar */
+    margin:10px 0 20px 0; /* geser ke kiri */
     text-decoration:none;
     font-weight:600;
 }

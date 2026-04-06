@@ -85,6 +85,7 @@ SELECT
             FROM cuti c2
             WHERE c2.nip = cuti.nip
             AND c2.status='Disetujui'
+            AND YEAR(c2.tgl_mulai) = YEAR(CURDATE())
             ),0
         ),0
     ) AS sisa_cuti

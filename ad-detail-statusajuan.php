@@ -14,6 +14,26 @@ LEFT JOIN pegawai ON cuti.nip = pegawai.nip
 WHERE cuti.id='$id'
 ");
 $data = mysqli_fetch_assoc($q);
+// ===== HITUNG SISA CUTI (PER TAHUN) =====
+$jatah = 12;
+
+$qPakai = mysqli_query($conn,"
+    SELECT SUM(jumlah_hari) AS total
+    FROM cuti
+    WHERE nip='".$data['nip']."'
+    AND status='Disetujui'
+    AND jenis_cuti!='Cuti Melahirkan'
+    AND YEAR(tgl_mulai) = YEAR(CURDATE())
+");
+
+$dPakai = mysqli_fetch_assoc($qPakai);
+$terpakai = $dPakai['total'] ?? 0;
+
+$sisaCuti = $jatah - $terpakai;
+
+if($sisaCuti < 0){
+    $sisaCuti = 0;
+}
 ?>
 
 <form method="post" action="proses-cuti.php">
@@ -40,6 +60,11 @@ $data = mysqli_fetch_assoc($q);
         <label style="font-size:13px;color:#777">Unit Kerja</label>
         <div style="background:#fff;padding:10px 14px;border-radius:12px">
             <?= $data['unit_kerja'] ?>
+        </div>
+
+        <label style="font-size:13px;color:#777">Sisa Cuti</label>
+        <div style="background:#fff;padding:10px 14px;border-radius:12px">
+            <?= $sisaCuti ?> Hari
         </div>
     </div>
 
