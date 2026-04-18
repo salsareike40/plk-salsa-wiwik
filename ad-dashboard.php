@@ -49,11 +49,9 @@ foreach($dataJumlah as $jenis => $jumlah){
     $totalPersen += $dataPersen[$jenis];
 }
 
-// koreksi supaya total = 100
 $selisih = 100 - $totalPersen;
 
 if($selisih != 0){
-    // tambahkan selisih ke kategori terbesar
     $maxKey = array_keys($dataPersen, max($dataPersen))[0];
     $dataPersen[$maxKey] += $selisih;
 }
@@ -61,15 +59,12 @@ if($selisih != 0){
 $qTotal = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti");
 $total = mysqli_fetch_assoc($qTotal)['total'];
 
-// Menunggu persetujuan
 $qMenunggu = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti WHERE status='Menunggu'");
 $menunggu = mysqli_fetch_assoc($qMenunggu)['total'];
 
-// Disetujui
 $qSetuju = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti WHERE status='Disetujui'");
 $setuju = mysqli_fetch_assoc($qSetuju)['total'];
 
-// Ditolak
 $qTolak = mysqli_query($conn, "SELECT COUNT(*) AS total FROM cuti WHERE status='Ditolak'");
 $tolak = mysqli_fetch_assoc($qTolak)['total'];
 

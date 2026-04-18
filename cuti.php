@@ -40,9 +40,31 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
     $jumlah_hari  = (int)$_POST['jumlah_hari'];
     $alamat       = $_POST['alamat'];
     $no_telp      = $_POST['no_telp'];
+    if(empty($tgl_mulai) || empty($tgl_selesai)){
+    $_SESSION['error_cuti'] = "Tanggal harus diisi";
+    header("Location: cuti.php");
+    exit;
+}
 $start = new DateTime($tgl_mulai);
 $end = new DateTime($tgl_selesai);
 $jumlah_hari = $start->diff($end)->days + 1;
+// VALIDASI TANGGAL
+if($tgl_selesai < $tgl_mulai){
+    $_SESSION['error_cuti'] = "Tanggal selesai tidak boleh sebelum tanggal mulai";
+    header("Location: cuti.php");
+    exit;
+}
+// VALIDASI CUTI MELAHIRKAN
+if($jenis_cuti == 'Cuti Melahirkan'){
+
+    if($jumlah_hari > 90){
+        $_SESSION['error_cuti'] = "Cuti melahirkan maksimal 90 hari";
+        header("Location: cuti.php");
+        exit;
+    }
+
+  
+}
 // cek jumlah hari tidak kosong
 if(empty($jumlah_hari) || $jumlah_hari <= 0){
     echo "<script>alert('Jumlah hari cuti tidak valid');history.back();</script>";
@@ -78,6 +100,7 @@ $qPakai = mysqli_query($conn,"
     WHERE nip='$nip'
     AND jenis_cuti='Cuti Tahunan'
     AND status='Disetujui'
+    AND YEAR(tgl_mulai) = YEAR(CURDATE())
 ");
 
 $data = mysqli_fetch_assoc($qPakai);

@@ -23,15 +23,35 @@ $password = ""; // password belum dibuat
 $role = "user";
 $reset = 1; // wajib buat password pertama kali
 
-// CEK NIP SUDAH ADA ATAU BELUM
-$cek = mysqli_query($conn,"SELECT nip FROM pegawai WHERE nip='$nip'");
+$cek = mysqli_query($conn,"
+    SELECT * FROM pegawai 
+    WHERE nip='$nip'
+");
 
-if(mysqli_num_rows($cek) > 0){
+$data = mysqli_fetch_assoc($cek);
 
-    $_SESSION['error'] = "NIP sudah terdaftar!";
+if($data){
+
+    // ❌ kalau masih aktif → tolak
+    if($data['status'] == 'aktif'){
+        $_SESSION['error'] = "NIP sudah terdaftar!";
+        header("Location: data-pegawai.php");
+        exit;
+    }
+
+    // 🔄 kalau nonaktif → aktifkan kembali
+    mysqli_query($conn,"
+        UPDATE pegawai SET
+            nama_pegawai='$nama',
+            jabatan='$jab',
+            unit_kerja='$unit',
+            status='aktif'
+        WHERE nip='$nip'
+    ");
+
+    $_SESSION['success'] = "Pegawai berhasil diaktifkan kembali!";
     header("Location: data-pegawai.php");
     exit;
-
 }
 
 // INSERT DATA + AKUN LOGIN

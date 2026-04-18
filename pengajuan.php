@@ -158,27 +158,28 @@ body{
     font-size:14px;
 }
 
-/* ===== TABLE ===== */
-.table-wrapper{
-    background:#f1f3f7; /* abu soft */
-    border-radius:16px;
-    padding:16px;
+.table-card{
+    background:#f7f9fd;
+    border-radius:18px;
+    padding:18px; /* 🔥 INI KUNCINYA */
 }
 
 table{
     width:100%;
-    border-collapse:collapse; /* penting */
+    border-radius:14px;
+    border-collapse:collapse;
+    background:#ffffff;
+    overflow:hidden;
+    box-shadow:0 10px 20px rgba(0,0,0,.08);
 }
-
-thead tr{
-    background:#2f64a3;
+thead{
+    background:#0b5aa6;
 }
 
 thead th{
-    padding:14px;
-    color:#fff;
-    text-align:center;
+    color:#ffffff;
     font-weight:600;
+    padding:18px 16px;
 }
 
 /* rounded ujung */
@@ -189,19 +190,18 @@ thead th:last-child{
     border-top-right-radius:12px;
 }
 
-tbody td{
-    padding:14px;
-    color:#444;
-}
-
 tbody tr{
-    background:#ffffff;
+    border-bottom:1px solid #edf1f7;
+}
+
+tbody tr:last-child{
+    border-bottom:none;
 }
 
 tbody td{
-    padding:14px;
+    padding:16px;
     text-align:center;
-    border-bottom:1px solid #eaeef5;
+    color:#444;
 }
 
 tbody tr:last-child{
@@ -249,6 +249,18 @@ table td:nth-child(6){
 .pending{
     background:#facc15;
     color:#7a5200;
+}
+.table-body{
+    padding:18px;
+}
+.table-card{
+    background:#f7f9fd;
+    border-radius:14px;
+    overflow:hidden; /* penting */
+}
+
+.table-body{
+    padding:18px;
 }
 </style>
 </head>
@@ -343,18 +355,18 @@ function doSearch(val){
 }
 </script>
 
-        <div class="table-wrapper">
-            <table>
-                <thead>
-                    <tr>
-                        <th>No</th>
-                        <th>Nama</th>
-                        <th>Jenis Cuti</th>
-                        <th>Tanggal</th>
-                        <th>Status</th>
-                        <th>Aksi</th>
-                    </tr>
-                </thead>
+        <div class="table-card">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>No</th>
+                            <th>Nama</th>
+                            <th>Jenis Cuti</th>
+                            <th>Tanggal</th>
+                            <th>Status</th>
+                            <th>Aksi</th>
+                        </tr>
+                    </thead>
                 <tbody>
                 <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
                     <tr>

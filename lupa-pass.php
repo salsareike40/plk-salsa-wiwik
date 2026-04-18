@@ -6,27 +6,32 @@ $error = "";
 
 if(isset($_POST['reset'])){
 
-$nip = $_POST['nip'];
-$password = $_POST['password'];
-$confirm = $_POST['confirm'];
+    $nip = $_POST['nip'];
+    $password = $_POST['password'];
+    $confirm = $_POST['confirm'];
 
-if($password != $confirm){
+    if($password != $confirm){
+        $error = "Password dan konfirmasi password tidak sama!";
+    } else {
 
-$error = "Password dan konfirmasi password tidak sama!";
+        // cek NIP terdaftar
+        $cek = mysqli_query($conn, "SELECT * FROM pegawai WHERE nip='$nip'");
 
-}else{
+        if(mysqli_num_rows($cek) == 0){
+            $error = "NIP belum terdaftar sebagai pegawai!";
+        } else {
 
-$hash = password_hash($password,PASSWORD_DEFAULT);
+            $hash = password_hash($password, PASSWORD_DEFAULT);
 
-mysqli_query($conn,"
-UPDATE pegawai
-SET password='$hash'
-WHERE nip='$nip'
-");
+            mysqli_query($conn,"
+                UPDATE pegawai
+                SET password='$hash'
+                WHERE nip='$nip'
+            ");
 
-$message = "Password berhasil diganti. Silakan login.";
-}
-
+            $message = "Password berhasil diganti. Silakan login.";
+        }
+    }
 }
 ?>
 

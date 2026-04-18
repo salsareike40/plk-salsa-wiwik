@@ -22,6 +22,13 @@ $qUser = mysqli_query($conn, "
 ");
 
 $user = mysqli_fetch_assoc($qUser);
+
+if(!$user){
+    $_SESSION['error'] = "Data user tidak ditemukan!";
+    header("Location: index.php"); // atau dashboard
+    exit;
+}
+
 $nipLogin = $user['nip'];
 
 $cari = $_GET['cari'] ?? '';

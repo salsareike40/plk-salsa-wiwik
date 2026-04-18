@@ -128,9 +128,9 @@ color:#92400e;
 
 /* EMPTY */
 .empty{
-text-align:center;
-padding:25px;
-color:#888;
+    text-align:center;
+    padding:30px;
+    color:#94a3b8;
 }
 .sidebar{
 width:260px;
@@ -466,7 +466,7 @@ class="search-input"
 
 <?php if(mysqli_num_rows($qCuti)==0): ?>
 <tr>
-<td colspan="4" class="empty">Belum ada riwayat cuti</td>
+<td colspan="6" class="empty">Belum ada riwayat cuti</td>
 </tr>
 <?php endif; ?>
 

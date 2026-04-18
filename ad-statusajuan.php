@@ -28,7 +28,7 @@ if($jenis != ''){
 $query = mysqli_query($conn,"
     SELECT cuti.*, pegawai.nama_pegawai
     FROM cuti
-    LEFT JOIN pegawai ON cuti.nip = pegawai.nip
+    INNER JOIN pegawai ON cuti.nip = pegawai.nip
     $where
     ORDER BY cuti.tgl_pengajuan DESC
 ");

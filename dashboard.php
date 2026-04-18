@@ -21,43 +21,24 @@ $nama      = $user['nama_pegawai'];
 // Jatah default cuti tahunan
 $jatahCuti = 12;
 
-// cek apakah pernah cuti melahirkan
-// cek apakah ada cuti melahirkan
-$qMelahirkan = mysqli_query($conn,"
-SELECT COUNT(*) AS ada
+
+// hitung cuti tahunan (TIDAK TERKAIT cuti melahirkan)
+$qPakai = mysqli_query($conn,"
+SELECT SUM(jumlah_hari) AS total
 FROM cuti
 WHERE nip='$nip'
-AND jenis_cuti='Cuti Melahirkan'
+AND jenis_cuti!='Cuti Melahirkan'
 AND status='Disetujui'
-AND CURDATE() BETWEEN tgl_mulai AND tgl_selesai
+AND YEAR(tgl_mulai) = YEAR(CURDATE())
 ");
 
-$dataMelahirkan = mysqli_fetch_assoc($qMelahirkan);
+$dataPakai = mysqli_fetch_assoc($qPakai);
+$terpakai = $dataPakai['total'] ?? 0;
 
-if($dataMelahirkan['ada'] > 0){
+$sisa = $jatahCuti - $terpakai;
 
+if($sisa < 0){
     $sisa = 0;
-
-}else{
-
-    $qPakai = mysqli_query($conn,"
-    SELECT SUM(jumlah_hari) AS total
-    FROM cuti
-    WHERE nip='$nip'
-    AND jenis_cuti!='Cuti Melahirkan'
-    AND status='Disetujui'
-    AND YEAR(tgl_mulai) = YEAR(CURDATE())
-    ");
-
-    $dataPakai = mysqli_fetch_assoc($qPakai);
-    $terpakai = $dataPakai['total'] ?? 0;
-
-    $sisa = $jatahCuti - $terpakai;
-
-    if($sisa < 0){
-        $sisa = 0;
-    }
-
 }
 
 
@@ -154,21 +135,69 @@ $tolak = mysqli_fetch_assoc($qTolak)['total'];
 $jatahMelahirkan = 90;
 
 $qMelahirkan = mysqli_query($conn,"
-SELECT SUM(jumlah_hari) AS total_hari
+SELECT tgl_mulai, tgl_selesai
 FROM cuti
 WHERE nip='$nip'
 AND jenis_cuti='Cuti Melahirkan'
 AND status='Disetujui'
-AND CURDATE() BETWEEN tgl_mulai AND tgl_selesai
+ORDER BY tgl_mulai DESC
+LIMIT 1
 ");
+
 $dataMelahirkan = mysqli_fetch_assoc($qMelahirkan);
 
-$cutiMelahirkanTerpakai = $dataMelahirkan['total_hari'] ?? 0;
+$hariTerpakai = 0;
+$sisaMelahirkan = $jatahMelahirkan;
+$statusMelahirkan = "Belum Ada";
 
-$sisaMelahirkan = $jatahMelahirkan - $cutiMelahirkanTerpakai;
+if($dataMelahirkan){
 
-if($sisaMelahirkan < 0){
-    $sisaMelahirkan = 0;
+    $tglMulai = new DateTime($dataMelahirkan['tgl_mulai']);
+    $tglSelesai = new DateTime($dataMelahirkan['tgl_selesai']);
+    $today = new DateTime();
+    $today->setTime(0,0,0);
+    $tglMulai->setTime(0,0,0);
+    $tglSelesai->setTime(0,0,0);
+
+    if($today < $tglMulai){
+
+        $statusMelahirkan = "Belum Mulai";
+        $hariTerpakai = 0;
+        $sisaMelahirkan = $jatahMelahirkan;
+
+    }
+    elseif($today >= $tglMulai && $today <= $tglSelesai){
+
+        $statusMelahirkan = "Sedang Berjalan";
+
+        $interval = $tglMulai->diff($today);
+        $hariTerpakai = $interval->days + 1;
+
+        if($hariTerpakai > $jatahMelahirkan){
+            $hariTerpakai = $jatahMelahirkan;
+        }
+
+        $sisaMelahirkan = $jatahMelahirkan - $hariTerpakai;
+
+    }
+else{
+
+    $tahunSelesai = date('Y', strtotime($dataMelahirkan['tgl_selesai']));
+    $tahunSekarang = date('Y');
+
+    if($tahunSekarang == $tahunSelesai){
+        // masih di tahun selesai → tetap 0
+        $statusMelahirkan = "Selesai";
+        $hariTerpakai = $jatahMelahirkan;
+        $sisaMelahirkan = 0;
+    } else {
+        // sudah masuk tahun berikutnya → reset
+        $statusMelahirkan = "Belum Ada";
+        $hariTerpakai = 0;
+        $sisaMelahirkan = $jatahMelahirkan;
+    }
+
+}
 }
 
 $query = mysqli_query($conn, "
@@ -780,6 +809,10 @@ body{
         <div>
             <p>Cuti Melahirkan</p>
             <h3><?= $sisaMelahirkan ?> Hari</h3>
+            <small>
+                Terpakai: <?= $hariTerpakai ?> / 90 <br>
+                <?= $statusMelahirkan ?>
+            </small>
         </div>
     </div>
 

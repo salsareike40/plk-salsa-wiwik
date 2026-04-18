@@ -25,7 +25,6 @@ $qPakai = mysqli_query($conn,"
     FROM cuti
     WHERE nip='".$d['nip']."'
     AND status='Disetujui'
-    AND jenis_cuti != 'Cuti Melahirkan'
 ");
 
 $dataPakai = mysqli_fetch_assoc($qPakai);
