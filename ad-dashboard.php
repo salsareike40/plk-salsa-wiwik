@@ -169,21 +169,32 @@ body{
     font-weight:600;
     line-height:1.4;
 }
-
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
+}
 .menu a{
     display:flex;
     align-items:center;
     gap:12px;
-    padding:14px 18px;
-    margin-bottom:10px;
+    padding:12px 18px;
     border-radius:10px;
     color:#fff;
     text-decoration:none;
     font-weight:500;
+    transition:0.2s;
 }
 
-.menu a.active,
-.menu a:hover{
+/* 🔥 ACTIVE (PUTIH) */
+.menu a.active{
+    background:#eaf2ff;
+    color:#0b57a4;
+    font-weight:600;
+}
+
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
     background:#0a4c8c;
 }
 
@@ -355,6 +366,66 @@ table{
     width:100%;
     border-collapse:collapse;
 }
+/* ===== TABLE DASHBOARD ===== */
+.dashboard-table{
+    width:100%;
+    table-layout:fixed;
+    border-collapse:collapse;
+}
+
+/* HEADER */
+.dashboard-table th{
+    padding:16px 20px;
+    text-align:left;
+    font-size:15px;
+    font-weight:600;
+    color:#6b7280;
+}
+
+/* BODY */
+.dashboard-table td{
+    padding:18px 20px;
+    font-size:15px;
+    color:#111827;
+    vertical-align:middle;
+}
+
+/* GARIS */
+.dashboard-table tbody tr{
+    border-bottom:1px solid #eef2f7;
+}
+
+/* KOLOM */
+.dashboard-table th:nth-child(1),
+.dashboard-table td:nth-child(1){
+    width:14%;
+}
+
+.dashboard-table th:nth-child(2),
+.dashboard-table td:nth-child(2){
+    width:10%;
+}
+
+.dashboard-table th:nth-child(3),
+.dashboard-table td:nth-child(3){
+    width:28%;
+}
+
+.dashboard-table th:nth-child(4),
+.dashboard-table td:nth-child(4){
+    width:24%;
+}
+
+.dashboard-table th:nth-child(5),
+.dashboard-table td:nth-child(5){
+    width:8%;
+    text-align:center;
+}
+
+.dashboard-table th:nth-child(6),
+.dashboard-table td:nth-child(6){
+    width:16%;
+}
 
 th{
     text-align:left;
@@ -490,15 +561,26 @@ td{
         <img src="aset/kominfo.png" alt="">
         <h2>SICUTI</h2>
     </div>
-
+<?php $page = basename($_SERVER['PHP_SELF']); ?>
     <div class="menu">
 
         <?php if ($_SESSION['role'] === 'admin') { ?>
 
-            <a href="ad-dashboard.php" class="active">📊 Dashboard</a>
-            <a href="data-pegawai.php">🧑‍💼 Data Pegawai</a>
-            <a href="pengajuan.php">📑 Pengajuan Cuti</a>
-            <a href="ad-statusajuan.php">⚠️ Status Pengajuan</a>
+            <a href="ad-dashboard.php" class="<?= $page=='ad-dashboard.php'?'active':'' ?>">
+                📊 Dashboard
+            </a>
+
+            <a href="data-pegawai.php" class="<?= $page=='data-pegawai.php'?'active':'' ?>">
+                🧑‍💼 Data Pegawai
+            </a>
+
+            <a href="ad-pengajuan-cuti.php" class="<?= $page=='ad-pengajuan-cuti.php'?'active':'' ?>">
+                📑 Pengajuan Cuti
+            </a>
+
+            <a href="ad-statusajuan.php" class="<?= $page=='ad-statusajuan.php'?'active':'' ?>">
+                ⚠️ Status Pengajuan
+            </a>
 
         <?php } elseif ($_SESSION['role'] === 'pegawai') { ?>
 
@@ -616,7 +698,7 @@ td{
                         <th>Nama</th>
                         <th>NIP</th>
                         <th>Jenis Cuti</th>
-                        <th>Tgl Pengajuan</th>
+                        <th>Tanggal Pengajuan</th>
                         <th>Hari</th>
                         <th>Sisa Cuti</th>
                         <th>Status</th>
@@ -683,7 +765,7 @@ td{
                 <th>Nama</th>
                 <th>NIP</th>
                 <th>Jenis Cuti</th>
-                <th>Tgl Pengajuan</th>
+                <th>Tanggal Pengajuan</th>
                 <th>Hari</th>
                 <th>Status</th>
             </tr>

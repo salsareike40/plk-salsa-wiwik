@@ -6,18 +6,19 @@ if(!isset($_SESSION['username'])){
     exit;
 }
 $username = $_SESSION['username'];
+$nip = $_SESSION['nip']; // 🔥 ambil dari session
+
 $qUser = mysqli_query($conn, "
-    SELECT nama_pegawai, nip, jabatan, unit_kerja
+    SELECT nama_pegawai, jabatan, unit_kerja
     FROM pegawai
-    WHERE username='$username'
+    WHERE nip='$nip'
 ");
 
 $user = mysqli_fetch_assoc($qUser);
 
 $nama = $user['nama_pegawai'];
-$nip         = $user['nip'];
-$jabatan     = $user['jabatan'];
-$unit_kerja  = $user['unit_kerja'];
+$jabatan = $user['jabatan'];
+$unit_kerja = $user['unit_kerja'];
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
@@ -29,7 +30,7 @@ if($_SERVER['REQUEST_METHOD'] == 'POST'){
         UPDATE pegawai SET
             jabatan='$jabatan',
             unit_kerja='$unit_kerja'
-        WHERE username='$username'
+        WHERE nip='$nip'
     ");
 
     // ⬇️ DATA CUTI
@@ -55,6 +56,7 @@ if($tgl_selesai < $tgl_mulai){
     exit;
 }
 // VALIDASI CUTI MELAHIRKAN
+// VALIDASI CUTI MELAHIRKAN
 if($jenis_cuti == 'Cuti Melahirkan'){
 
     if($jumlah_hari > 90){
@@ -63,7 +65,32 @@ if($jenis_cuti == 'Cuti Melahirkan'){
         exit;
     }
 
-  
+    // 🔥 TAMBAHAN WAJIB (CEK TOTAL YANG SUDAH DIPAKAI)
+    $qTotalMelahirkan = mysqli_query($conn,"
+    SELECT SUM(jumlah_hari) AS total
+    FROM cuti
+    WHERE nip='$nip'
+    AND jenis_cuti='Cuti Melahirkan'
+    AND status='Disetujui'
+    ");
+
+    $dataTotalMelahirkan = mysqli_fetch_assoc($qTotalMelahirkan);
+    $totalMelahirkan = $dataTotalMelahirkan['total'] ?? 0;
+
+    // ❌ kalau sudah habis 90 hari
+    if($totalMelahirkan >= 90){
+        $_SESSION['error_cuti'] = "Jatah cuti melahirkan sudah habis (90 hari)";
+        header("Location: cuti.php");
+        exit;
+    }
+
+    // ❌ kalau melebihi sisa
+    if($totalMelahirkan + $jumlah_hari > 90){
+        $_SESSION['error_cuti'] = "Pengajuan melebihi sisa cuti melahirkan";
+        header("Location: cuti.php");
+        exit;
+    }
+
 }
 // cek jumlah hari tidak kosong
 if(empty($jumlah_hari) || $jumlah_hari <= 0){
@@ -138,33 +165,33 @@ if($dataBentrok['total'] > 0){
 
 
     mysqli_query($conn,"
-        INSERT INTO cuti
-        (
-            username,
-            nip,
-            jenis_cuti,
-            alasan,
-            tgl_mulai,
-            tgl_selesai,
-            jumlah_hari,
-            alamat,
-            no_telp,
-            status
-        )
-        VALUES
-        (
-            '$username',
-            '$nip',
-            '$jenis_cuti',
-            '$alasan',
-            '$tgl_mulai',
-            '$tgl_selesai',
-            '$jumlah_hari',
-            '$alamat',
-            '$no_telp',
-            'Menunggu'
-        )
-    ");
+    INSERT INTO cuti
+    (
+        nama,
+        nip,
+        jenis_cuti,
+        alasan,
+        tgl_mulai,
+        tgl_selesai,
+        jumlah_hari,
+        alamat,
+        no_telp,
+        status
+    )
+    VALUES
+    (
+        '$nama',
+        '$nip',
+        '$jenis_cuti',
+        '$alasan',
+        '$tgl_mulai',
+        '$tgl_selesai',
+        '$jumlah_hari',
+        '$alamat',
+        '$no_telp',
+        'Menunggu'
+    )
+");
 
         $_SESSION['success'] = true;
     header("Location: cuti.php");
@@ -266,31 +293,32 @@ body{
     font-weight:600;
     line-height:1.4;
 }
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
+}
 .menu a{
     display:flex;
     align-items:center;
     gap:12px;
-
-    width:100%;              /* 🔑 KUNCI */
-    box-sizing:border-box;   /* 🔑 KUNCI */
-
-    padding:14px 18px;
-    margin-bottom:10px;
+    padding:12px 18px;
     border-radius:10px;
-
     color:#fff;
     text-decoration:none;
     font-weight:500;
+    transition:0.2s;
 }
 
-
-.menu a.active,
-.menu a:hover{
-    background:#0a4c8c;
+/* 🔥 ACTIVE (PUTIH) */
+.menu a.active{
+    background:#eaf2ff;
+    color:#0b57a4;
+    font-weight:600;
 }
 
-
-.menu a:not(.active):hover{
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
     background:#0a4c8c;
 }
 
@@ -461,12 +489,12 @@ function toggleInfoMelahirkan(jenis){
         <img src="aset/kominfo.png" alt="">
         <h2>SICUTI</h2>
     </div>
-
+<?php $page = basename($_SERVER['PHP_SELF']); ?>
     <div class="menu">
         <a href="dashboard.php" class="<?= $page=='dashboard.php'?'active':'' ?>">📊 Dashboard</a>
         <a href="cuti.php" class="<?= $page=='cuti.php'?'active':'' ?>">🗓️ Cuti</a>
-        <a href="status-pengajuan.php" class="<?= $page=='status-pengajuan.php'?'active':'' ?>">📑 Status Pengajuan</a>
-        <a href="status-pengajuan.php" class="<?= $page=='riwayat-cuti.php'?'active':'' ?>">📑 Riwayat Cuti</a>
+        <a href="status-pengajuan.php" class="<?= $page=='status-pengajuan.php'?'active':'' ?>">📋 Status Pengajuan</a>
+        <a href="riwayat-cuti.php" class="<?= $page=='riwayat-cuti.php'?'active':'' ?>">🕘 Riwayat Cuti</a>
     </div>
 </div>
 
@@ -526,27 +554,125 @@ function toggleInfoMelahirkan(jenis){
         <div class="form-row">
             <label>Jabatan</label>
             <select name="jabatan">
-                <option value="">Pilih Jabatan</option>
-                <option value="Kadis" <?= $jabatan=='Kadis'?'selected':'' ?>>Kadis</option>
-                <option value="Sekdis" <?= $jabatan=='Sekdis'?'selected':'' ?>>Sekdis</option>
-                <option value="Kabid TI" <?= $jabatan=='Kabid TI'?'selected':'' ?>>Kabid TI</option>
-                <option value="Kabid IKP" <?= $jabatan=='Kabid IKP'?'selected':'' ?>>Kabid IKP</option>
-                <option value="Staff" <?= $jabatan=='Staff'?'selected':'' ?>>Staff</option>
-                <option value="Kabid Umum" <?= $jabatan=='Kabid Umum'?'selected':'' ?>>Kabid Umum</option>
-            </select>
+
+    <option value="Kepala Dinas" <?= $jabatan=='Kepala Dinas'?'selected':'' ?>>
+        Kepala Dinas
+    </option>
+
+    <option value="Sekretaris" <?= $jabatan=='Sekretaris'?'selected':'' ?>>
+        Sekretaris
+    </option>
+
+    <option value="Kepala Bidang Persandian dan Keamanan Informasi" <?= $jabatan=='Kepala Bidang Persandian dan Keamanan Informasi'?'selected':'' ?>>
+        Kepala Bidang Persandian dan Keamanan Informasi
+    </option>
+
+    <option value="Kepala Bidang Penyelenggaraan e-Government" <?= $jabatan=='Kepala Bidang Penyelenggaraan e-Government'?'selected':'' ?>>
+        Kepala Bidang Penyelenggaraan e-Government
+    </option>
+
+    <option value="Arsiparis Ahli Madya" <?= $jabatan=='Arsiparis Ahli Madya'?'selected':'' ?>>
+        Arsiparis Ahli Madya
+    </option>
+
+    <option value="Kepala Bidang Pengelolaan Informasi dan Komunikasi Publik" <?= $jabatan=='Kepala Bidang Pengelolaan Informasi dan Komunikasi Publik'?'selected':'' ?>>
+        Kepala Bidang Pengelolaan Informasi dan Komunikasi Publik
+    </option>
+
+    <option value="Kepala Bidang Statistik" <?= $jabatan=='Kepala Bidang Statistik'?'selected':'' ?>>
+        Kepala Bidang Statistik
+    </option>
+
+    <option value="Sandiman Ahli Muda" <?= $jabatan=='Sandiman Ahli Muda'?'selected':'' ?>>
+        Sandiman Ahli Muda
+    </option>
+
+    <option value="Pranata Humas Ahli Muda" <?= $jabatan=='Pranata Humas Ahli Muda'?'selected':'' ?>>
+        Pranata Humas Ahli Muda
+    </option>
+
+    <option value="Pranata Komputer Ahli Muda" <?= $jabatan=='Pranata Komputer Ahli Muda'?'selected':'' ?>>
+        Pranata Komputer Ahli Muda
+    </option>
+
+    <option value="Kepala Sub Bagian Umum dan Kepegawaian" <?= $jabatan=='Kepala Sub Bagian Umum dan Kepegawaian'?'selected':'' ?>>
+        Kepala Sub Bagian Umum dan Kepegawaian
+    </option>
+
+    <option value="Statistisi Ahli Muda" <?= $jabatan=='Statistisi Ahli Muda'?'selected':'' ?>>
+        Statistisi Ahli Muda
+    </option>
+
+    <option value="Kepala Sub Bagian Keuangan" <?= $jabatan=='Kepala Sub Bagian Keuangan'?'selected':'' ?>>
+        Kepala Sub Bagian Keuangan
+    </option>
+
+    <option value="Arsiparis Mahir" <?= $jabatan=='Arsiparis Mahir'?'selected':'' ?>>
+        Arsiparis Mahir
+    </option>
+
+    <option value="Penelaah Teknis Kebijakan" <?= $jabatan=='Penelaah Teknis Kebijakan'?'selected':'' ?>>
+        Penelaah Teknis Kebijakan
+    </option>
+
+    <option value="Penata Layanan Operasional" <?= $jabatan=='Penata Layanan Operasional'?'selected':'' ?>>
+        Penata Layanan Operasional
+    </option>
+
+    <option value="Pranata Hubungan Masyarakat Ahli Pertama" <?= $jabatan=='Pranata Hubungan Masyarakat Ahli Pertama'?'selected':'' ?>>
+        Pranata Hubungan Masyarakat Ahli Pertama
+    </option>
+
+    <option value="Pranata Komputer Ahli Pertama" <?= $jabatan=='Pranata Komputer Ahli Pertama'?'selected':'' ?>>
+        Pranata Komputer Ahli Pertama
+    </option>
+
+    <option value="Statistisi Ahli Pertama" <?= $jabatan=='Statistisi Ahli Pertama'?'selected':'' ?>>
+        Statistisi Ahli Pertama
+    </option>
+
+    <option value="Pengadministrasi Perkantoran" <?= $jabatan=='Pengadministrasi Perkantoran'?'selected':'' ?>>
+        Pengadministrasi Perkantoran
+    </option>
+
+</select>
         </div>
 
         <div class="form-row">
             <label>Unit Kerja</label>
             <select name="unit_kerja">
-                <option value="">Pilih Unit Kerja</option>
-                <option value="Bidang TI" <?= $unit_kerja=='Bidang TI'?'selected':'' ?>>Bidang TI</option>
-                <option value="Bidang IKP" <?= $unit_kerja=='Bidang IKP'?'selected':'' ?>>Bidang IKP</option>
-                <option value="Sekretariat" <?= $unit_kerja=='Sekretariat'?'selected':'' ?>>Sekretariat</option>
-                <option value="Bidang Statistik" <?= $unit_kerja=='Bidang Statistik'?'selected':'' ?>>Bidang Statistik</option>
-                <option value="Kepegawaian" <?= $unit_kerja=='Kepegawaian'?'selected':'' ?>>Kepegawaian</option>
-                <option value="Bagian Umum" <?= $unit_kerja=='Bagian Umum'?'selected':'' ?>>Bagian Umum</option>
-            </select>
+
+            <option value="Bidang Persandian dan Keamanan Informasi"
+            <?= $unit_kerja=='Bidang Persandian dan Keamanan Informasi'?'selected':'' ?>>
+                Bidang Persandian dan Keamanan Informasi
+            </option>
+
+            <option value="Bidang Penyelenggaraan e-Government"
+            <?= $unit_kerja=='Bidang Penyelenggaraan e-Government'?'selected':'' ?>>
+                Bidang Penyelenggaraan e-Government
+            </option>
+
+            <option value="Bidang Pengelolaan Informasi dan Komunikasi Publik"
+            <?= $unit_kerja=='Bidang Pengelolaan Informasi dan Komunikasi Publik'?'selected':'' ?>>
+                Bidang Pengelolaan Informasi dan Komunikasi Publik
+            </option>
+
+            <option value="Bidang Statistik"
+            <?= $unit_kerja=='Bidang Statistik'?'selected':'' ?>>
+                Bidang Statistik
+            </option>
+
+            <option value="Sub Bagian Umum dan Kepegawaian"
+            <?= $unit_kerja=='Sub Bagian Umum dan Kepegawaian'?'selected':'' ?>>
+                Sub Bagian Umum dan Kepegawaian
+            </option>
+
+            <option value="Sub Bagian Keuangan"
+            <?= $unit_kerja=='Sub Bagian Keuangan'?'selected':'' ?>>
+                Sub Bagian Keuangan
+            </option>
+
+        </select>
         </div>
     </div>
     <!-- GRID -->

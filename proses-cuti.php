@@ -39,7 +39,7 @@ if(!$update){
 <meta charset="UTF-8">
 <title>Proses Cuti</title>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-<meta http-equiv="refresh" content="2;url=pengajuan.php">
+<meta http-equiv="refresh" content="2;url=ad-pengajuan-cuti.php">
 <style>
 body{
     background:#eef4fb;

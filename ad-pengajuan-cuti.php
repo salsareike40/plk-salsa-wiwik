@@ -32,7 +32,6 @@ if ($q != '') {
 $query = mysqli_query($conn,"
 SELECT 
 cuti.id,
-cuti.username,
 cuti.nip,
 cuti.jenis_cuti,
 cuti.tgl_mulai,
@@ -44,7 +43,7 @@ pegawai.unit_kerja
 FROM cuti
 LEFT JOIN pegawai ON cuti.nip = pegawai.nip
 $where
-ORDER BY cuti.tgl_pengajuan DESC
+ORDER BY cuti.id DESC
 ");
 ?>
 <!DOCTYPE html>
@@ -92,7 +91,7 @@ body{
 .menu{
     display:flex;
     flex-direction:column;
-    gap:18px;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
 }
 .menu a{
     display:flex;
@@ -103,10 +102,19 @@ body{
     color:#fff;
     text-decoration:none;
     font-weight:500;
+    transition:0.2s;
 }
+
+/* 🔥 ACTIVE (PUTIH) */
 .menu a.active{
     background:#eaf2ff;
     color:#0b57a4;
+    font-weight:600;
+}
+
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
+    background:#0a4c8c;
 }
 
 /* ===== MAIN ===== */
@@ -240,11 +248,16 @@ table td:nth-child(6){
 
 /* BUTTON DETAIL */
 .btn-detail{
-    background:#4a6fa5;
+    background:#4f79bd;
     color:#fff;
-    padding:6px 14px;
-    border-radius:8px;
-    font-size:13px;
+    padding:8px 16px;
+    border-radius:10px;
+    text-decoration:none;
+    font-weight:600;
+    font-size:14px;
+    display:inline-flex;
+    align-items:center;
+    gap:6px;
 }
 .pending{
     background:#facc15;
@@ -273,11 +286,9 @@ table td:nth-child(6){
         <img src="aset/kominfo.png">
         <h2>SICUTI</h2>
     </div>
-
-   <?php $page = basename($_SERVER['PHP_SELF']); ?>
-
+<?php $page = basename($_SERVER['PHP_SELF']); ?>
 <div class="menu">
-    <a href="dashboard.php" class="<?= $page=='dashboard.php'?'active':'' ?>">
+    <a href="ad-dashboard.php" class="<?= $page=='ad-dashboard.php'?'active':'' ?>">
         📊 Dashboard
     </a>
 
@@ -285,7 +296,7 @@ table td:nth-child(6){
         🧑‍💼 Data Pegawai
     </a>
 
-    <a href="pengajuan.php" class="<?= $page=='pengajuan.php'?'active':'' ?>">
+    <a href="ad-pengajuan-cuti.php" class="<?= $page=='ad-pengajuan-cuti.php'?'active':'' ?>">
         📑 Pengajuan Cuti
     </a>
 
@@ -314,7 +325,17 @@ table td:nth-child(6){
 
 <form method="GET" style="display:flex;gap:12px">
 
-<select name="status" onchange="this.form.submit()" style="padding:10px 14px;border-radius:10px;border:1px solid #ccc">
+<select 
+name="status" 
+onchange="this.form.submit()" 
+
+style="
+padding:10px 14px;
+border-radius:10px;
+border:1px solid #ccc;
+background:#fff;
+color:#000;
+">
 
 <option value="">Semua Status</option>
 
@@ -350,7 +371,7 @@ let typingTimer;
 function doSearch(val){
     clearTimeout(typingTimer);
     typingTimer = setTimeout(function(){
-        window.location = 'pengajuan.php?q=' + encodeURIComponent(val);
+        window.location = 'ad-pengajuan-cuti.php?q=' + encodeURIComponent(val);
     }, 600); // tunggu user selesai ngetik
 }
 </script>
@@ -360,6 +381,7 @@ function doSearch(val){
                     <thead>
                         <tr>
                             <th>No</th>
+                            <th>NIP</th>
                             <th>Nama</th>
                             <th>Jenis Cuti</th>
                             <th>Tanggal</th>
@@ -371,6 +393,7 @@ function doSearch(val){
                 <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
                     <tr>
                         <td><?= $no++ ?></td>
+                        <td><?= $row['nip'] ?></td>
                         <td><?= $row['nama_pegawai'] ?></td>
                         <td><?= $row['jenis_cuti'] ?></td>
                         <td>

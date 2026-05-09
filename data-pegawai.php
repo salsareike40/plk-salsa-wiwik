@@ -82,12 +82,40 @@ $qUnit    = mysqli_query($conn,"SELECT DISTINCT unit_kerja FROM pegawai WHERE un
                     <td>
                         <select name="jabatan" required>
                             <option value="">Pilih Jabatan</option>
-                            <?php while($j = mysqli_fetch_assoc($qJabatan)): ?>
-                                <option value="<?= $j['jabatan'] ?>"
-                                    <?= ($j['jabatan'] == $d['jabatan']) ? 'selected' : '' ?>>
-                                    <?= $j['jabatan'] ?>
-                                </option>
-                            <?php endwhile; ?>
+
+                            <?php
+                            $listJabatan = [
+                                "Kepala Dinas",
+                                "Sekretaris",
+                                "Kepala Bidang Persandian dan Keamanan Informasi",
+                                "Kepala Bidang Penyelenggaraan e-Government",
+                                "Arsiparis Ahli Madya",
+                                "Kepala Bidang Pengelolaan Informasi dan Komunikasi Publik",
+                                "Kepala Bidang Statistik",
+                                "Sandiman Ahli Muda",
+                                "Pranata Humas Ahli Muda",
+                                "Pranata Komputer Ahli Muda",
+                                "Kepala Sub Bagian Umum dan Kepegawaian",
+                                "Statistisi Ahli Muda",
+                                "Kepala Sub Bagian Keuangan",
+                                "Arsiparis Mahir",
+                                "Penelaah Teknis Kebijakan",
+                                "Penata Layanan Operasional",
+                                "Pranata Hubungan Masyarakat Ahli Pertama",
+                                "Pranata Komputer Ahli Pertama",
+                                "Statistisi Ahli Pertama",
+                                "Pengadministrasi Perkantoran"
+                            ];
+
+                            foreach($listJabatan as $jab){
+                            ?>
+
+                            <option value="<?= $jab ?>"
+                                <?= ($jab == $d['jabatan']) ? 'selected' : '' ?>>
+                                <?= $jab ?>
+                            </option>
+
+                            <?php } ?>
                         </select>
                     </td>
                 </tr>
@@ -96,12 +124,26 @@ $qUnit    = mysqli_query($conn,"SELECT DISTINCT unit_kerja FROM pegawai WHERE un
                     <td>
                         <select name="unit_kerja" required>
                             <option value="">Pilih Unit Kerja</option>
-                            <?php while($u = mysqli_fetch_assoc($qUnit)): ?>
-                                <option value="<?= $u['unit_kerja'] ?>"
-                                    <?= ($u['unit_kerja'] == $d['unit_kerja']) ? 'selected' : '' ?>>
-                                    <?= $u['unit_kerja'] ?>
-                                </option>
-                            <?php endwhile; ?>
+
+                            <?php
+                            $listUnit = [
+                                "Bidang Persandian dan Keamanan Informasi",
+                                "Bidang Penyelenggaraan e-Government",
+                                "Bidang Pengelolaan Informasi dan Komunikasi Publik",
+                                "Bidang Statistik",
+                                "Sub Bagian Umum dan Kepegawaian",
+                                "Sub Bagian Keuangan"
+                            ];
+
+                            foreach($listUnit as $unit){
+                            ?>
+
+                            <option value="<?= $unit ?>"
+                                <?= ($unit == $d['unit_kerja']) ? 'selected' : '' ?>>
+                                <?= $unit ?>
+                            </option>
+
+                            <?php } ?>
                         </select>
                     </td>
                 </tr>
@@ -116,12 +158,13 @@ $qUnit    = mysqli_query($conn,"SELECT DISTINCT unit_kerja FROM pegawai WHERE un
         <?php
     }
 
-    exit; // 🔴 penting: hentikan HTML utama
+    exit; 
 }
 $q = $_GET['q'] ?? '';
 
 $where = "
 WHERE status = 'aktif'
+AND role != 'admin'
 AND nama_pegawai IS NOT NULL
 AND nama_pegawai != ''
 ";
@@ -189,24 +232,30 @@ body{
 .menu{
     display:flex;
     flex-direction:column;
-    gap:10px;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
 }
 .menu a{
     display:flex;
     align-items:center;
-    gap:14px;
-    padding:14px 18px;
-    border-radius:12px;
+    gap:12px;
+    padding:12px 18px;
+    border-radius:10px;
     color:#fff;
     text-decoration:none;
     font-weight:500;
+    transition:0.2s;
 }
+
+/* 🔥 ACTIVE (PUTIH) */
 .menu a.active{
     background:#eaf2ff;
     color:#0b57a4;
+    font-weight:600;
 }
-.menu a:hover{
-    background:rgba(255,255,255,.15);
+
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
+    background:#0a4c8c;
 }
 
 /* ===== MAIN ===== */
@@ -256,7 +305,7 @@ body{
     margin-bottom:25px;
 }
 .btn-add{
-    background:#4f79bd;
+    background:#0b5aa6;
     color:#fff;
     padding:12px 18px;
     border-radius:10px;
@@ -265,6 +314,7 @@ body{
     display:flex;
     align-items:center;
     gap:8px;
+    border:none;
 }
 .search{
     flex:1;
@@ -347,6 +397,8 @@ tbody tr:last-child{
     background:#f4f6fb;
     border-radius:16px;
     box-shadow:0 20px 40px rgba(0,0,0,.25);
+
+    transform: translateY(-80px);
 }
 
 .modal-header{
@@ -437,6 +489,7 @@ button{
 }
 
 
+
 </style>
 </head>
 
@@ -460,7 +513,7 @@ button{
         🧑‍💼 Data Pegawai
     </a>
 
-    <a href="pengajuan.php" class="<?= $page=='pengajuan.php'?'active':'' ?>">
+    <a href="ad-pengajuan-cuti.php" class="<?= $page=='ad-pengajuan-cuti.php'?'active':'' ?>">
         📥 Pengajuan Cuti
     </a>
 
@@ -487,25 +540,36 @@ button{
 
         <!-- TOOLBAR -->
         <div class="toolbar">
-            <button class="btn-add" onclick="openModal()">➕ Tambah Pegawai</button>
-            <div class="search">
+            <button class="btn-add" onclick="openModal()">+ Tambah Pegawai</button>
+        <form method="GET" style="display:flex;gap:12px">
+
     <input
-        type="text"
-        placeholder="Cari Nama / NIP..."
-        value="<?= $_GET['q'] ?? '' ?>"
-        onkeyup="doSearch(this.value)">
-</div>
+    type="text"
+    name="q"
+    placeholder="Cari Nama / NIP..."
+    value="<?= $_GET['q'] ?? '' ?>"
+    style="
+    padding:10px 16px;
+    border-radius:20px;
+    border:1px solid #ccc;
+    width:260px
+    ">
 
-<script>
-let typingTimer;
+    <button
+    type="submit"
+    style="
+    padding:10px 16px;
+    border:none;
+    background:#0b57a4;
+    color:white;
+    border-radius:10px
+    ">
+    Cari
+    </button>
 
-function doSearch(val){
-    clearTimeout(typingTimer);
-    typingTimer = setTimeout(function(){
-        window.location = 'data-pegawai.php?q=' + encodeURIComponent(val);
-    }, 600); // tunggu user selesai ngetik
-}
-</script>
+</form>
+
+
         </div>
 
         <!-- TABLE -->
@@ -573,9 +637,26 @@ function doSearch(val){
                         <label>Jabatan <span>*</span></label>
                         <select name="jabatan" required>
                             <option value="">Pilih Jabatan</option>
-                            <option>Kabid TI</option>
-                            <option>Kabid Umum</option>
-                            <option>Staff</option>
+                            <option>Kepala Dinas</option>
+                            <option>Sekretaris</option>
+                            <option>Kepala Bidang Persandian dan Keamanan Informasi</option>
+                            <option>Kepala Bidang Penyelenggaraan e-Government</option>
+                            <option>Arsiparis Ahli Madya</option>
+                            <option>Kepala Bidang Pengelolaan Informasi dan Komunikasi Publik</option>
+                            <option>Kepala Bidang Statistik</option>
+                            <option>Sandiman Ahli Muda</option>
+                            <option>Pranata Humas Ahli Muda</option>
+                            <option>Pranata Komputer Ahli Muda</option>
+                            <option>Kepala Sub Bagian Umum dan Kepegawaian</option>
+                            <option>Statistisi Ahli Muda</option>
+                            <option>Kepala Sub Bagian Keuangan</option>
+                            <option>Arsiparis Mahir</option>
+                            <option>Penelaah Teknis Kebijakan</option>
+                            <option>Penata Layanan Operasional</option>
+                            <option>Pranata Hubungan Masyarakat Ahli Pertama</option>
+                            <option>Pranata Komputer Ahli Pertama</option>
+                            <option>Statistisi Ahli Pertama</option>
+                            <option>Pengadministrasi Perkantoran</option>
                         </select>
                     </div>
 
@@ -583,9 +664,12 @@ function doSearch(val){
                         <label>Unit Kerja <span>*</span></label>
                         <select name="unit_kerja" required>
                             <option value="">Pilih Unit Kerja</option>
-                            <option>Bidang TI</option>
-                            <option>Bagian Umum</option>
-                            <option>Kepegawaian</option>
+                            <option>Bidang Persandian dan Keamanan Informasi</option>
+                            <option>Bidang Penyelenggaraan e-Government</option>
+                            <option>Bidang Pengelolaan Informasi dan Komunikasi Publik</option>
+                            <option>Bidang Statistik</option>
+                            <option>Sub Bagian Umum dan Kepegawaian</option>
+                            <option>Sub Bagian Keuangan</option>
                         </select>
                     </div>
                 </div>

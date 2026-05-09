@@ -30,6 +30,7 @@ if (isset($_POST['login'])) {
             $_SESSION['login']      = true;
             $_SESSION['id_pegawai'] = $pegawai['id_pegawai'];
             $_SESSION['username']   = $pegawai['username'];
+            $_SESSION['nip'] = $pegawai['nip'];
             $_SESSION['role']       = $pegawai['role']; 
 
             header("Location: dashboard.php");

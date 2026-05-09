@@ -130,7 +130,8 @@ color:#92400e;
 .empty{
     text-align:center;
     padding:30px;
-    color:#94a3b8;
+    color:#333;        /* 🔥 lebih gelap */
+    font-weight:500;   /* biar tegas */
 }
 .sidebar{
 width:260px;
@@ -154,22 +155,33 @@ font-size:20px;
 font-weight:600;
 line-height:1.4;
 }
-
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
+}
 .menu a{
-display:flex;
-align-items:center;
-gap:12px;
-padding:14px 18px;
-margin-bottom:10px;
-border-radius:10px;
-color:#fff;
-text-decoration:none;
-font-weight:500;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    padding:12px 18px;
+    border-radius:10px;
+    color:#fff;
+    text-decoration:none;
+    font-weight:500;
+    transition:0.2s;
 }
 
-.menu a.active,
-.menu a:hover{
-background:#0a4c8c;
+/* 🔥 ACTIVE (PUTIH) */
+.menu a.active{
+    background:#eaf2ff;
+    color:#0b57a4;
+    font-weight:600;
+}
+
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
+    background:#0a4c8c;
 }
 
 .main{
@@ -348,11 +360,7 @@ color:#92400e;
 }
 
 /* EMPTY */
-.empty{
-text-align:center;
-padding:30px;
-color:#94a3b8;
-}
+
 /* FILTER BAR */
 .filter-bar{
 display:flex;
@@ -397,12 +405,23 @@ box-shadow:0 0 0 3px rgba(11,90,166,.15);
         <img src="aset/kominfo.png" alt="">
         <h2>SICUTI</h2>
     </div>
-
+    <?php $page = basename($_SERVER['PHP_SELF']); ?>
     <div class="menu">
-        <a href="dashboard.php" class="active">📊 Dashboard</a>
-        <a href="cuti.php">🗓️ Cuti</a>
-        <a href="status-pengajuan.php">⚠️ Status Pengajuan</a>
-        <a href="riwayat-cuti.php">⚠️ Riwayat Cuti</a>
+        <a href="dashboard.php" class="<?= $page=='dashboard.php'?'active':'' ?>">
+            📊 Dashboard
+        </a>
+
+        <a href="cuti.php" class="<?= $page=='cuti.php'?'active':'' ?>">
+            🗓️ Cuti
+        </a>
+
+        <a href="status-pengajuan.php" class="<?= $page=='status-pengajuan.php'?'active':'' ?>">
+            📋 Status Pengajuan
+        </a>
+
+        <a href="riwayat-cuti.php" class="<?= $page=='riwayat-cuti.php'?'active':'' ?>">
+            🕘 Riwayat Cuti
+        </a>
 
     </div>
 </div>
@@ -430,10 +449,10 @@ box-shadow:0 0 0 3px rgba(11,90,166,.15);
 
 <div class="filter-bar">
 
-<form method="GET" style="display:flex;align-items:center;gap:12px;width:100%">
+<form method="GET" style="display:flex;align-items:center;gap:12px">
 
 <select name="status" onchange="this.form.submit()" class="filter-select">
-<option value="">Semua</option>
+<option value="">Semua Status</option>
 <option value="Disetujui" <?= ($_GET['status'] ?? '')=='Disetujui'?'selected':'' ?>>Disetujui</option>
 <option value="Ditolak" <?= ($_GET['status'] ?? '')=='Ditolak'?'selected':'' ?>>Ditolak</option>
 </select>
@@ -441,10 +460,30 @@ box-shadow:0 0 0 3px rgba(11,90,166,.15);
 <input
 type="text"
 name="cari"
-placeholder="Cari jenis cuti..."
+placeholder="Cari nama / jenis cuti..."
 value="<?= $_GET['cari'] ?? '' ?>"
-class="search-input"
+
+style="
+padding:10px 16px;
+border-radius:20px;
+border:1px solid #ccc;
+width:260px;
+outline:none;
+"
 >
+<button
+type="submit"
+style="
+padding:10px 16px;
+border:none;
+background:#0b57a4;
+color:white;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+">
+Cari
+</button>
 
 </form>
 

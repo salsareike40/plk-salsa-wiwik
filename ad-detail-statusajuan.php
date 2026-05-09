@@ -58,7 +58,7 @@ if($sisaCuti < 0){
         </div>
 
         <label style="font-size:13px;color:#777">Unit Kerja</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px">
+        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
             <?= $data['unit_kerja'] ?>
         </div>
 
@@ -98,7 +98,17 @@ if($sisaCuti < 0){
 <hr style="margin:24px 0;border:1px solid #e0e6ef">
 
 <input type="hidden" name="id" value="<?= $data['id'] ?>">
-
+<div style="
+font-size:15px;
+font-weight:600;
+color:#0b57a4;
+margin-bottom:8px;
+display:flex;
+align-items:center;
+gap:6px;
+">
+📝 Catatan Admin
+</div>
 <textarea
     id="catatan"
     name="catatan"

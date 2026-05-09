@@ -9,7 +9,7 @@ if ($_SESSION['role'] === 'admin') {
 $username = $_SESSION['username'];
 
 $qUser = mysqli_query($conn,"
-    SELECT nip, nama_pegawai, sisa_cuti
+    SELECT nip, nama_pegawai
     FROM pegawai
     WHERE username='$username'
 ");
@@ -40,6 +40,7 @@ $sisa = $jatahCuti - $terpakai;
 if($sisa < 0){
     $sisa = 0;
 }
+$statusTahunan = $terpakai > 0 ? "Sudah Digunakan" : "Belum Ada";
 
 
 
@@ -155,19 +156,21 @@ if($dataMelahirkan){
     $tglMulai = new DateTime($dataMelahirkan['tgl_mulai']);
     $tglSelesai = new DateTime($dataMelahirkan['tgl_selesai']);
     $today = new DateTime();
+
+    // samakan waktu
     $today->setTime(0,0,0);
     $tglMulai->setTime(0,0,0);
     $tglSelesai->setTime(0,0,0);
 
+    // 🔵 BELUM MULAI
     if($today < $tglMulai){
-
         $statusMelahirkan = "Belum Mulai";
         $hariTerpakai = 0;
         $sisaMelahirkan = $jatahMelahirkan;
-
     }
-    elseif($today >= $tglMulai && $today <= $tglSelesai){
 
+    // 🟡 SEDANG BERJALAN
+    elseif($today >= $tglMulai && $today <= $tglSelesai){
         $statusMelahirkan = "Sedang Berjalan";
 
         $interval = $tglMulai->diff($today);
@@ -178,26 +181,14 @@ if($dataMelahirkan){
         }
 
         $sisaMelahirkan = $jatahMelahirkan - $hariTerpakai;
-
     }
-else{
 
-    $tahunSelesai = date('Y', strtotime($dataMelahirkan['tgl_selesai']));
-    $tahunSekarang = date('Y');
-
-    if($tahunSekarang == $tahunSelesai){
-        // masih di tahun selesai → tetap 0
+    // 🟢 SUDAH SELESAI
+    else{
         $statusMelahirkan = "Selesai";
         $hariTerpakai = $jatahMelahirkan;
         $sisaMelahirkan = 0;
-    } else {
-        // sudah masuk tahun berikutnya → reset
-        $statusMelahirkan = "Belum Ada";
-        $hariTerpakai = 0;
-        $sisaMelahirkan = $jatahMelahirkan;
     }
-
-}
 }
 
 $query = mysqli_query($conn, "
@@ -267,21 +258,32 @@ body{
     font-weight:600;
     line-height:1.4;
 }
-
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
+}
 .menu a{
     display:flex;
     align-items:center;
     gap:12px;
-    padding:14px 18px;
-    margin-bottom:10px;
+    padding:12px 18px;
     border-radius:10px;
     color:#fff;
     text-decoration:none;
     font-weight:500;
+    transition:0.2s;
 }
 
-.menu a.active,
-.menu a:hover{
+/* 🔥 ACTIVE (PUTIH) */
+.menu a.active{
+    background:#eaf2ff;
+    color:#0b57a4;
+    font-weight:600;
+}
+
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
     background:#0a4c8c;
 }
 
@@ -751,8 +753,8 @@ body{
     <div class="menu">
         <a href="dashboard.php" class="active">📊 Dashboard</a>
         <a href="cuti.php">🗓️ Cuti</a>
-        <a href="status-pengajuan.php">⚠️ Status Pengajuan</a>
-        <a href="riwayat-cuti.php">⚠️ Riwayat Cuti</a>
+        <a href="status-pengajuan.php">📋 Status Pengajuan</a>
+        <a href="riwayat-cuti.php">🕘 Riwayat Cuti</a>
 
     </div>
 </div>
@@ -785,6 +787,10 @@ body{
         <div>
             <p>Sisa Cuti Tahunan</p>
             <h3><?= $sisa ?> Hari</h3>
+            <small>
+                Terpakai: <?= $terpakai ?> / 12 <br>
+                <?= $statusTahunan ?>
+            </small>
         </div>
     </div>
 

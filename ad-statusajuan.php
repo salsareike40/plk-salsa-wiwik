@@ -79,21 +79,33 @@ body{
     font-weight:600;
     line-height:1.4;
 }
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
+}
 
 .menu a{
     display:flex;
     align-items:center;
     gap:12px;
-    padding:14px 18px;
-    margin-bottom:10px;
+    padding:12px 18px;
     border-radius:10px;
     color:#fff;
     text-decoration:none;
     font-weight:500;
+    transition:0.2s;
 }
 
-.menu a.active,
-.menu a:hover{
+/* 🔥 ACTIVE (PUTIH) */
+.menu a.active{
+    background:#eaf2ff;
+    color:#0b57a4;
+    font-weight:600;
+}
+
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
     background:#0a4c8c;
 }
 
@@ -118,20 +130,19 @@ body{
 
 
 
-/* BOX */
 .box{
-    background:#fff;
-    padding:25px;
-    border-radius:18px;
-    box-shadow:0 10px 20px rgba(0,0,0,.08);
+    padding:0;
+    background:transparent;
+    box-shadow:none;
 }
 
 /* TABLE */
 table{
     width:100%;
-    border-collapse:separate;
-    border-spacing:0 10px; /* ⬅️ HANYA BODY YANG BERJARAK */
-    table-layout:fixed;
+    border-collapse:collapse;
+    background:#fff;
+    border-radius:18px;
+    overflow:hidden;
 }
 /* ===== FIX JARAK KOLOM TABEL ===== */
 .box th:nth-child(1),
@@ -360,7 +371,7 @@ td{
 
             <a href="ad-dashboard.php">📊 Dashboard</a>
             <a href="data-pegawai.php">🧑‍💼 Data Pegawai</a>
-            <a href="pengajuan.php">📑 Pengajuan Cuti</a>
+            <a href="ad-pengajuan-cuti.php">📑 Pengajuan Cuti</a>
             <a href="ad-statusajuan.php" class="active">⚠️ Status Pengajuan</a>
 
         <?php else: ?>
@@ -414,9 +425,33 @@ td{
                 <?= $j['jenis_cuti'] ?>
             </option>
         <?php endwhile; ?>
-
         </select>
 
+        <input
+        type="text"
+        name="q"
+        placeholder="Cari nama / jenis cuti..."
+        value="<?= $_GET['q'] ?? '' ?>"
+        style="
+        padding:10px 16px;
+        border-radius:20px;
+        border:1px solid #ccc;
+        width:260px
+        ">
+
+        <button
+        type="submit"
+        style="
+        padding:10px 16px;
+        border:none;
+        background:#0b57a4;
+        color:white;
+        border-radius:10px;
+        font-weight:600;
+        cursor:pointer;
+        ">
+        Cari
+        </button>
         </form>
     </div>
         <table>
@@ -436,7 +471,7 @@ td{
 
             <?php if(mysqli_num_rows($query)==0): ?>
                 <tr>
-                    <td colspan="5" style="text-align:center;color:#888">
+                    <td colspan="7" style="text-align:center;color:#888;padding:30px 0;">
                         Belum ada pengajuan cuti
                     </td>
                 </tr>
@@ -446,8 +481,8 @@ td{
             <?php while($row=mysqli_fetch_assoc($query)): ?>
 <tr>
     <td><?= $no++ ?></td>
-    <td><?= $row['nama_pegawai'] ?></td>
     <td><?= $row['nip'] ?></td>
+    <td><?= $row['nama_pegawai'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td>
         <?= date('d M Y',strtotime($row['tgl_mulai'])) ?>

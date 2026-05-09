@@ -37,7 +37,11 @@ $where = "WHERE cuti.nip='$nipLogin' AND cuti.status='Menunggu'";
 
 
 if($cari != ''){
-    $where .= " AND (username LIKE '%$cari%' OR nip LIKE '%$cari%' OR jenis_cuti LIKE '%$cari%')";
+$where .= " AND (
+    pegawai.nama_pegawai LIKE '%$cari%'
+    OR cuti.nip LIKE '%$cari%'
+    OR cuti.jenis_cuti LIKE '%$cari%'
+)";
 }
 
 
@@ -95,21 +99,32 @@ body{
     font-weight:600;
     line-height:1.4;
 }
-
+.menu{
+    display:flex;
+    flex-direction:column;
+    gap:26px; /* 🔥 ini bikin jarak renggang */
+}
 .menu a{
     display:flex;
     align-items:center;
     gap:12px;
-    padding:14px 18px;
-    margin-bottom:10px;
+    padding:12px 18px;
     border-radius:10px;
     color:#fff;
     text-decoration:none;
     font-weight:500;
+    transition:0.2s;
 }
 
-.menu a.active,
-.menu a:hover{
+/* 🔥 ACTIVE (PUTIH) */
+.menu a.active{
+    background:#eaf2ff;
+    color:#0b57a4;
+    font-weight:600;
+}
+
+/* 🔥 HOVER (JANGAN TIMPA ACTIVE) */
+.menu a:hover:not(.active){
     background:#0a4c8c;
 }
 
@@ -328,8 +343,8 @@ tbody tr:hover{
     <div class="menu">
         <a href="dashboard.php">📊 Dashboard</a>
         <a href="cuti.php">🗓️ Cuti</a>
-        <a href="status-pengajuan.php" class="active">⚠️ Status Pengajuan</a>
-        <a href="riwayat-cuti.php" class="<?= $page=='riwayat-cuti.php'?'active':'' ?>">📑 Riwayat Cuti</a>
+        <a href="status-pengajuan.php" class="active">📋 Status Pengajuan</a>
+        <a href="riwayat-cuti.php" class="<?= $page=='riwayat-cuti.php'?'active':'' ?>">🕘 Riwayat Cuti</a>
     </div>
 </div>
 
@@ -354,15 +369,36 @@ tbody tr:hover{
 
 <div class="filter-bar">
 
-<form method="GET" style="display:flex;align-items:center;gap:12px;width:100%">
+<form method="GET" style="display:flex;align-items:center;gap:12px">
 
 <input
 type="text"
 name="cari"
-placeholder="Cari Nama / NIP..."
+placeholder="Cari nama / jenis cuti..."
 value="<?= $_GET['cari'] ?? '' ?>"
-class="search-input"
+
+style="
+padding:10px 16px;
+border-radius:20px;
+border:1px solid #ccc;
+width:260px;
+outline:none;
+"
 >
+
+<button
+type="submit"
+style="
+padding:10px 16px;
+border:none;
+background:#0b57a4;
+color:white;
+border-radius:10px;
+font-weight:600;
+cursor:pointer;
+">
+Cari
+</button>
 
 
 </form>
@@ -372,8 +408,8 @@ class="search-input"
             <thead>
                 <tr>
                     <th>No</th>
-                    <th>Nama</th>
                     <th>NIP</th>
+                    <th>Nama</th>
                     <th>Jenis Cuti</th>
                     <th>Tanggal Cuti</th>
                     <th>Status</th>
@@ -385,7 +421,9 @@ class="search-input"
             <?php if(mysqli_num_rows($query)==0): ?>
                 <tr>
                     <td colspan="6" class="empty">
-                        Belum ada pengajuan cuti
+                        <div class="empty-box">
+                            Belum ada pengajuan cuti
+                        </div>
                     </td>
                 </tr>
             <?php endif; ?>
@@ -393,8 +431,8 @@ class="search-input"
             <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
 <tr>
     <td><?= $no++ ?></td>
-    <td><?= $row['nama_pegawai'] ?></td>
     <td><?= $row['nip'] ?></td>
+    <td><?= $row['nama_pegawai'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td>
         <?= date('d M Y',strtotime($row['tgl_mulai'])) ?>
@@ -415,7 +453,18 @@ class="search-input"
     <td>
         <a href="javascript:void(0)"
         class="btn-ajukan"
-        style="background:#22a6a1;padding:6px 14px;font-size:12px"
+        style="
+        background:#5b7ec7;
+        padding:10px 22px;
+        font-size:14px;
+        border-radius:12px;
+        font-weight:600;
+        color:white;
+        display:inline-flex;
+        align-items:center;
+        gap:6px;
+        text-decoration:none;
+        "
         onclick="openDetail(<?= $row['id'] ?>)">
             👁 Detail
         </a>

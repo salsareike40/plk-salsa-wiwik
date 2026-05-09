@@ -75,19 +75,32 @@ $data = mysqli_fetch_assoc($q);
 
 <hr style="margin:24px 0;border:1px solid #e0e6ef">
 
-<input type="hidden" name="id" value="<?= $data['id'] ?>">
-<label style="font-size:13px;color:#777">Catatan Admin</label>
+<div style="
+font-size:15px;
+font-weight:600;
+color:#0b57a4;
+margin-bottom:8px;
+display:flex;
+align-items:center;
+gap:6px;
+">
+📝 Catatan Admin
+</div>
+
 <textarea
 rows="4"
 readonly
 style="
 width:100%;
-padding:10px 14px;
-border-radius:12px;
-border:1px solid #ddd;
-background:#f3f4f6;
+padding:14px 16px;
+border-radius:14px;
+border:1px solid #dbe3f0;
+background:#f8fafc;
 resize:none;
-margin-bottom:16px
+margin-bottom:16px;
+font-size:14px;
+line-height:1.6;
+color:#333;
 ">
 <?php
 echo htmlspecialchars($data['catatan_admin'] ?: 'Belum ada catatan dari admin');
