@@ -162,42 +162,75 @@ gap:6px;
 }
 </style>
 
-<div style="display:flex;gap:16px;justify-content:flex-end">
+<!-- STATUS PERSETUJUAN -->
+<div style="margin-top:10px">
 
-    <!-- TIDAK SETUJU -->
-    <button 
-        type="submit"
-        name="keputusan"
-        value="Tidak Setuju"
-        class="btn btn-reject"
-    >
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-            <path d="M18 6L6 18M6 6l12 12"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"/>
-        </svg>
-        Tidak Setuju
-    </button>
+    <div style="
+        font-size:14px;
+        font-weight:600;
+        color:#475569;
+        margin-bottom:8px;
+    ">
+        Status Persetujuan
+    </div>
 
-    <!-- SETUJU -->
-    <button 
-        type="submit"
+    <select
         name="keputusan"
-        value="Setuju"
-        class="btn btn-approve"
+        required
+        style="
+            width:100%;
+            padding:14px 16px;
+            border-radius:14px;
+            border:1px solid #dbe2ea;
+            background:#fff;
+            font-size:14px;
+            outline:none;
+        "
     >
-        <svg width="16" height="16" fill="none" viewBox="0 0 24 24">
-            <path d="M5 13l4 4L19 7"
-                  stroke="white"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"/>
-        </svg>
-        Setuju
+
+        <option value="">-- Pilih Status --</option>
+
+        <option value="Setuju"
+            <?= $data['status']=='Disetujui' ? 'selected' : '' ?>>
+            ✅ Setuju
+        </option>
+
+        <option value="Tidak Setuju"
+            <?= $data['status']=='Ditolak' ? 'selected' : '' ?>>
+            ❌ Tidak Setuju
+        </option>
+
+    </select>
+
+</div>
+
+<!-- BUTTON SIMPAN -->
+<div style="
+    display:flex;
+    justify-content:flex-end;
+    margin-top:22px;
+">
+
+    <button
+        type="submit"
+        style="
+            background:linear-gradient(135deg,#0b57a4,#2b7cff);
+            color:white;
+            border:none;
+            padding:13px 28px;
+            border-radius:14px;
+            font-size:14px;
+            font-weight:600;
+            cursor:pointer;
+            box-shadow:0 8px 18px rgba(43,124,255,.25);
+        "
+    >
+        💾 Simpan
     </button>
 
 </div>
+
+
 
 
 

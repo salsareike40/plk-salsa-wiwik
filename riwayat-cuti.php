@@ -539,7 +539,7 @@ echo '<span class="badge wait">Menunggu</span>';
 
 <td>
 <a href="javascript:void(0)"
-style="background:#22a6a1;color:white;padding:6px 14px;border-radius:6px;text-decoration:none"
+style="background:#0b57a4;color:white;padding:6px 14px;border-radius:6px;text-decoration:none"
 onclick="openDetail(<?= $row['id'] ?>)">
 👁 Detail
 </a>

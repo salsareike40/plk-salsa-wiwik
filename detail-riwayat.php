@@ -19,88 +19,89 @@ $data = mysqli_fetch_assoc($q);
 
 <form method="post" action="proses-cuti.php">
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+<div id="printArea">
 
-    <!-- KOLOM KIRI -->
-    <div>
-        <label style="font-size:13px;color:#777">Nama</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['nama_pegawai'] ?>
-        </div>
+<!-- HEADER PDF -->
+<div class="print-header">
 
-        <label style="font-size:13px;color:#777">NIP</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['nip'] ?>
-        </div>
+    <img src="aset/kominfo.png" class="logo-print">
 
-        <label style="font-size:13px;color:#777">Jabatan</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['jabatan'] ?>
-        </div>
-
-        <label style="font-size:13px;color:#777">Unit Kerja</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px">
-            <?= $data['unit_kerja'] ?>
-        </div>
+    <div class="header-text">
+        <h1>SISTEM INFORMASI CUTI PEGAWAI</h1>
+        <p>Pemerintah Kota Mataram</p>
+        <p>Jl. Contoh No. 123 Mataram</p>
     </div>
-
-    <!-- KOLOM KANAN -->
-    <div>
-        <label style="font-size:13px;color:#777">Jenis Cuti</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['jenis_cuti'] ?>
-        </div>
-
-        <label style="font-size:13px;color:#777">Tanggal</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= date('d M Y', strtotime($data['tgl_mulai'])) ?>
-            -
-            <?= date('d M Y', strtotime($data['tgl_selesai'])) ?>
-        </div>
-
-        <label style="font-size:13px;color:#777">Lama Cuti</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['jumlah_hari'] ?> Hari
-        </div>
-
-        <label style="font-size:13px;color:#777">Alasan</label>
-        <div style="background:#fff;padding:10px 14px;border-radius:12px;margin-bottom:12px">
-            <?= $data['alasan'] ?: 'Tidak ada alasan' ?>
-        </div>
-    </div>
-       
-    
 
 </div>
 
-<hr style="margin:24px 0;border:1px solid #e0e6ef">
+<hr class="garis-print">
+
+<h2 class="judul-print">
+    DETAIL PENGAJUAN CUTI
+</h2>
 
 <input type="hidden" name="id" value="<?= $data['id'] ?>">
-<label style="
-    font-size:13px;
-    font-weight:600;
-    color:#64748b;
-    display:block;
-    margin-bottom:8px;
-    letter-spacing:.3px;
-">
-    📝 CATATAN ADMIN
-</label>
 
-<div style="
-    background:#ffffff;
-    padding:16px 18px;
-    border-radius:14px;
-    border:1px solid #e2e8f0;
-    box-shadow:0 4px 12px rgba(0,0,0,.06);
-    color:#334155;
-    font-size:14px;
-    line-height:1.6;
-    min-height:70px;
-    margin-bottom:16px;
-">
-    <?= nl2br(htmlspecialchars($data['catatan'] ?? 'Belum ada catatan dari admin')) ?>
-</div>
+<table class="table-print">
+
+<tr>
+    <td><b>Nama</b></td>
+    <td><?= $data['nama_pegawai'] ?></td>
+
+    <td><b>Jenis Cuti</b></td>
+    <td><?= $data['jenis_cuti'] ?></td>
+</tr>
+
+<tr>
+    <td><b>NIP</b></td>
+    <td><?= $data['nip'] ?></td>
+
+    <td><b>Tanggal</b></td>
+    <td>
+        <?= date('d M Y', strtotime($data['tgl_mulai'])) ?>
+        -
+        <?= date('d M Y', strtotime($data['tgl_selesai'])) ?>
+    </td>
+</tr>
+
+<tr>
+    <td><b>Jabatan</b></td>
+    <td><?= $data['jabatan'] ?></td>
+
+    <td><b>Lama Cuti</b></td>
+    <td><?= $data['jumlah_hari'] ?> Hari</td>
+</tr>
+
+<tr>
+    <td><b>Unit Kerja</b></td>
+    <td><?= $data['unit_kerja'] ?></td>
+
+    <td><b>Status</b></td>
+    <td>
+        <span class="status-print">
+            <?= $data['status'] ?>
+        </span>
+    </td>
+</tr>
+
+<tr>
+    <td><b>Alasan</b></td>
+    <td colspan="3">
+        <?= $data['alasan'] ?: 'Tidak ada alasan' ?>
+    </td>
+</tr>
+
+<tr>
+    <td><b>Catatan Admin</b></td>
+    <td colspan="3">
+        <?= nl2br(htmlspecialchars($data['catatan'] ?? '-')) ?>
+    </td>
+</tr>
+
+</table>
+
+
+
 
 <style>
 .btn{
@@ -138,9 +139,130 @@ $data = mysqli_fetch_assoc($q);
 .btn:active{
     transform:scale(.96);
 }
+
+@media print {
+
+    body *{
+        visibility: hidden;
+    }
+
+    #printArea,
+    #printArea *{
+        visibility: visible;
+    }
+
+    #printArea{
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background: white;
+        padding: 40px;
+    }
+
+    .no-print{
+        display: none !important;
+    }
+}
+
+.print-header{
+    display:flex;
+    align-items:center;
+    gap:20px;
+    margin-bottom:20px;
+}
+
+.logo-print{
+    width:90px;
+}
+
+.header-text h1{
+    font-size:30px;
+    color:#0b3b75;
+    margin-bottom:6px;
+}
+
+.header-text p{
+    margin:2px 0;
+    color:#444;
+    font-size:14px;
+}
+
+.garis-print{
+    border:2px solid #0b3b75;
+    margin:25px 0;
+}
+
+.judul-print{
+    text-align:center;
+    color:#0b3b75;
+    margin-bottom:30px;
+    font-size:32px;
+    font-weight:700;
+}
+.table-print{
+    width:100%;
+    border-collapse:separate;
+    border-spacing:0;
+    font-size:15px;
+    box-shadow:0 4px 14px rgba(0,0,0,.05);
+    border:1px solid #d6dce5;
+}
+
+.table-print td{
+    border-right:1px solid #d6dce5;
+    border-bottom:1px solid #d6dce5;
+    padding:14px;
+    vertical-align:top;
+    width:25%;
+}
+.table-print tr td:last-child{
+    border-right:none;
+}
+.table-print tr:nth-child(even){
+    background:#f8fbff;
+}
+
+.status-print{
+    background:#d1fae5;
+    color:#047857;
+    padding:6px 14px;
+    border-radius:20px;
+    font-size:12px;
+    font-weight:600;
+}
+.table-print tr:last-child td{
+    border-bottom:none
+}
 </style>
 
-<div style="display:flex;justify-content:flex-end;margin-top:20px">
+
+
+<div class="no-print"
+style="
+display:flex;
+justify-content:flex-end;
+gap:12px;
+margin-top:20px;
+">
+
+    <button
+        type="button"
+        onclick="window.print()"
+        style="
+            background:#0b57a4;
+            color:#fff;
+            border:none;
+            padding:12px 24px;
+            border-radius:12px;
+            font-size:14px;
+            font-weight:600;
+            cursor:pointer;
+        "
+    >
+        🖨 Cetak PDF
+    </button>
+
     <button
         type="button"
         onclick="closeDetail()"
@@ -157,7 +279,10 @@ $data = mysqli_fetch_assoc($q);
     >
         OK
     </button>
+
 </div>
+
+</div> <!-- penutup printArea -->
 
 <script>
 function closeDetail(){

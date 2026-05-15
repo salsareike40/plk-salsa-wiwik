@@ -632,6 +632,9 @@ button{
                 <label>Nama <span>*</span></label>
                 <input type="text" name="nama" placeholder="Masukkan Nama" required>
 
+                <label>No Telpon <span>*</span></label>
+                <input type="text" name="no_telp" placeholder="Masukkan No Telpon" required>
+
                 <div class="row">
                     <div>
                         <label>Jabatan <span>*</span></label>

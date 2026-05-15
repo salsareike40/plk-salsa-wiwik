@@ -9,7 +9,7 @@ $username = $_SESSION['username'];
 $nip = $_SESSION['nip']; // 🔥 ambil dari session
 
 $qUser = mysqli_query($conn, "
-    SELECT nama_pegawai, jabatan, unit_kerja
+    SELECT nama_pegawai, jabatan, unit_kerja, no_telp
     FROM pegawai
     WHERE nip='$nip'
 ");
@@ -19,6 +19,7 @@ $user = mysqli_fetch_assoc($qUser);
 $nama = $user['nama_pegawai'];
 $jabatan = $user['jabatan'];
 $unit_kerja = $user['unit_kerja'];
+$no_telp = $user['no_telp'];
 
 if($_SERVER['REQUEST_METHOD'] == 'POST'){
 
@@ -771,7 +772,12 @@ Cuti Karena Alasan Penting
         </div>
         <div class="form-row">
             <label>No Telp</label>
-            <input type="text" name="no_telp">
+            <input 
+            type="text" 
+            name="no_telp"
+            value="<?= $no_telp ?>"
+            readonly
+            >
         </div>
     </div>
 

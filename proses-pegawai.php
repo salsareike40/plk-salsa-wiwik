@@ -9,10 +9,11 @@ if(!isset($_SESSION['role']) || $_SESSION['role'] !== 'admin'){
 
 $nip   = mysqli_real_escape_string($conn, $_POST['nip']);
 $nama  = mysqli_real_escape_string($conn, $_POST['nama']);
+$no_telp = mysqli_real_escape_string($conn, $_POST['no_telp']);
 $jab   = mysqli_real_escape_string($conn, $_POST['jabatan']);
 $unit  = mysqli_real_escape_string($conn, $_POST['unit_kerja']);
 
-if($nip == '' || $nama == '' || $jab == '' || $unit == ''){
+if($nip == '' || $nama == '' || $jab == '' || $unit == '' || $no_telp == ''){
     $_SESSION['error'] = "Semua field wajib diisi!";
     header("Location: data-pegawai.php");
     exit;
@@ -45,6 +46,7 @@ if($data){
             nama_pegawai='$nama',
             jabatan='$jab',
             unit_kerja='$unit',
+            no_telp='$no_telp',
             status='aktif'
         WHERE nip='$nip'
     ");
@@ -61,6 +63,7 @@ nip,
 nama_pegawai,
 jabatan,
 unit_kerja,
+no_telp,
 username,
 password,
 role,
@@ -71,6 +74,7 @@ status
 '$nama',
 '$jab',
 '$unit',
+'$no_telp',
 '$username',
 '$password',
 '$role',
