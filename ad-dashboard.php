@@ -715,7 +715,7 @@ td{
 
 <?php while($row = mysqli_fetch_assoc($query)): ?>
 <tr>
-    <td><?= $row['nama_pegawai'] ?? $row['username'] ?></td>
+    <td><?= $row['nama_pegawai'] ?? $row['nama_pegawai'] ?></td>
     <td><?= $row['nip'] ?></td>
     <td><?= $row['jenis_cuti'] ?></td>
     <td><?= date('d M Y', strtotime($row['tgl_pengajuan'])) ?></td>

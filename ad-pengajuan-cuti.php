@@ -390,7 +390,8 @@ function doSearch(val){
                         </tr>
                     </thead>
                 <tbody>
-                <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
+                <?php if(mysqli_num_rows($query) > 0): ?>
+                    <?php $no=1; while($row=mysqli_fetch_assoc($query)): ?>
                     <tr>
                         <td><?= $no++ ?></td>
                         <td><?= $row['nip'] ?></td>
@@ -421,6 +422,20 @@ function doSearch(val){
                         </td>
                     </tr>
                 <?php endwhile; ?>
+                <?php else: ?>
+
+                <tr>
+                    <td colspan="7" style="
+                        padding:40px;
+                        text-align:center;
+                        color:#777;
+                        font-size:15px;
+                    ">
+                        Belum ada data pengajuan cuti
+                    </td>
+                </tr>
+
+                <?php endif; ?>
                 </tbody>
             </table>
         </div>

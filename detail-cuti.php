@@ -103,7 +103,7 @@ line-height:1.6;
 color:#333;
 ">
 <?php
-echo htmlspecialchars($data['catatan_admin'] ?: 'Belum ada catatan dari admin');
+echo 'Belum ada catatan dari admin';
 ?>
 </textarea>
 

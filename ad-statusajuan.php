@@ -338,7 +338,7 @@ td{
     text-align:center;
     font-weight:600;
     padding:16px 12px;
-    border-radius:0; /* ⬅️ penting */
+    border-radius:0; 
 }
 .box thead th:first-child{
     border-radius:14px 0 0 14px;
@@ -419,12 +419,32 @@ td{
 
         <option value="">Semua Jenis Cuti</option>
 
-        <?php while($j = mysqli_fetch_assoc($qJenis)): ?>
-            <option value="<?= $j['jenis_cuti'] ?>"
-                <?= ($_GET['jenis'] ?? '') == $j['jenis_cuti'] ? 'selected' : '' ?>>
-                <?= $j['jenis_cuti'] ?>
-            </option>
-        <?php endwhile; ?>
+        <option value="Cuti Tahunan"
+        <?= ($_GET['jenis'] ?? '') == 'Cuti Tahunan' ? 'selected' : '' ?>>
+        Cuti Tahunan
+        </option>
+
+        <option value="Cuti Sakit"
+        <?= ($_GET['jenis'] ?? '') == 'Cuti Sakit' ? 'selected' : '' ?>>
+        Cuti Sakit
+        </option>
+
+        <option value="Cuti Melahirkan"
+        <?= ($_GET['jenis'] ?? '') == 'Cuti Melahirkan' ? 'selected' : '' ?>>
+        Cuti Melahirkan
+        </option>
+
+        <option value="Cuti Besar"
+        <?= ($_GET['jenis'] ?? '') == 'Cuti Besar' ? 'selected' : '' ?>>
+        Cuti Besar
+        </option>
+
+        <option value="Cuti Penting"
+        <?= ($_GET['jenis'] ?? '') == 'Cuti Penting' ? 'selected' : '' ?>>
+        Cuti Penting
+        </option>
+
+        
         </select>
 
         <input

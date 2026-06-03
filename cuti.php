@@ -176,7 +176,6 @@ if($dataBentrok['total'] > 0){
         tgl_selesai,
         jumlah_hari,
         alamat,
-        no_telp,
         status
     )
     VALUES
@@ -189,7 +188,6 @@ if($dataBentrok['total'] > 0){
         '$tgl_selesai',
         '$jumlah_hari',
         '$alamat',
-        '$no_telp',
         'Menunggu'
     )
 ");
