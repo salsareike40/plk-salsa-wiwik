@@ -40,7 +40,40 @@ $sisa = $jatahCuti - $terpakai;
 if($sisa < 0){
     $sisa = 0;
 }
-$statusTahunan = $terpakai > 0 ? "Sudah Digunakan" : "Belum Ada";
+$statusTahunan = "Belum Mulai";
+
+$qStatusTahunan = mysqli_query($conn,"
+SELECT tgl_mulai, tgl_selesai
+FROM cuti
+WHERE nip='$nip'
+AND jenis_cuti!='Cuti Melahirkan'
+AND status='Disetujui'
+ORDER BY tgl_mulai DESC
+LIMIT 1
+");
+
+$dataStatusTahunan = mysqli_fetch_assoc($qStatusTahunan);
+
+if($dataStatusTahunan){
+
+    $tglMulai = new DateTime($dataStatusTahunan['tgl_mulai']);
+    $tglSelesai = new DateTime($dataStatusTahunan['tgl_selesai']);
+    $today = new DateTime();
+
+    $today->setTime(0,0,0);
+    $tglMulai->setTime(0,0,0);
+    $tglSelesai->setTime(0,0,0);
+
+    if($today < $tglMulai){
+        $statusTahunan = "Belum Mulai";
+    }
+    elseif($today >= $tglMulai && $today <= $tglSelesai){
+        $statusTahunan = "Sedang Cuti";
+    }
+    else{
+        $statusTahunan = "Selesai";
+    }
+}
 
 
 
@@ -149,7 +182,7 @@ $dataMelahirkan = mysqli_fetch_assoc($qMelahirkan);
 
 $hariTerpakai = 0;
 $sisaMelahirkan = $jatahMelahirkan;
-$statusMelahirkan = "Belum Ada";
+$statusMelahirkan = "Belum Mulai";
 
 if($dataMelahirkan){
 
@@ -171,7 +204,7 @@ if($dataMelahirkan){
 
     // 🟡 SEDANG BERJALAN
     elseif($today >= $tglMulai && $today <= $tglSelesai){
-        $statusMelahirkan = "Sedang Berjalan";
+        $statusMelahirkan = "Sedang Cuti";
 
         $interval = $tglMulai->diff($today);
         $hariTerpakai = $interval->days + 1;

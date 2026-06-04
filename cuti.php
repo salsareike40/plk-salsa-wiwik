@@ -60,8 +60,8 @@ if($tgl_selesai < $tgl_mulai){
 // VALIDASI CUTI MELAHIRKAN
 if($jenis_cuti == 'Cuti Melahirkan'){
 
-    if($jumlah_hari > 90){
-        $_SESSION['error_cuti'] = "Cuti melahirkan maksimal 90 hari";
+    if($jumlah_hari != 90){
+        $_SESSION['error_cuti'] = "Cuti melahirkan wajib 90 hari";
         header("Location: cuti.php");
         exit;
     }
@@ -98,8 +98,16 @@ if(empty($jumlah_hari) || $jumlah_hari <= 0){
     echo "<script>alert('Jumlah hari cuti tidak valid');history.back();</script>";
     exit;
 }
-if($jenis_cuti != 'Cuti Melahirkan' && $jumlah_hari > 12){
-    $_SESSION['error_cuti'] = "Tidak bisa mengajukan cuti, batas maksimal 12 hari";
+// CUTI TAHUNAN MAKSIMAL 12 HARI
+if($jenis_cuti == 'Cuti Tahunan' && $jumlah_hari > 12){
+    $_SESSION['error_cuti'] = "Cuti tahunan maksimal 12 hari";
+    header("Location: cuti.php");
+    exit;
+}
+
+// CUTI BESAR MAKSIMAL 90 HARI
+if($jenis_cuti == 'Cuti Besar' && $jumlah_hari > 90){
+    $_SESSION['error_cuti'] = "Cuti besar maksimal 90 hari";
     header("Location: cuti.php");
     exit;
 }
